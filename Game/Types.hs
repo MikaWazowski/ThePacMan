@@ -3,6 +3,7 @@ module Game.Types where
 type Position = (Int, Int)
 data Direction = North | East | West | South
 
+-- The length of a wall is always from left to right
 data Wall = Wall {
     length :: Int,
     startPosition :: Position
