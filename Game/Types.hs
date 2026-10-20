@@ -7,7 +7,7 @@ data Direction = North | East | West | South
 data Wall = Wall {
     length :: Int,
     startPosition :: Position
-}
+} deriving (Show)
 
 data Board = Board {
     walls :: [Wall],

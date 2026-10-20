@@ -18,3 +18,16 @@ fieldIsWalkable b (x, y) =
     wallPlace w =
       let (wx, wy) = startPosition w
       in y == wy && x >= wx && x < wx + Game.Types.length w
+
+
+-- directionWant is already an idea for what will come in a later stadium of the game when we introduced the tick that makes pacman actually move.
+movePacMan :: Board -> Direction -> PacMan -> PacMan
+movePacMan b dir pac =
+  if fieldIsWalkable b next
+  then pac {position = next, directionGoing = dir, directionWant = Nothing}
+  else pac {directionWant = Just dir}
+
+  where
+    next = stepPosition dir (position pac)
+  
+  
