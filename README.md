@@ -14,5 +14,4 @@ cabal run pacman
 - `Game/Logic.hs` handles movement
 - `Game/Controller.hs` maps input to movement
 - `Game/Render.hs` draws the board
-- `main.hs` this file is ran.
-Ø
+- `main.hs` file that uses all other files
