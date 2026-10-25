@@ -17,7 +17,7 @@ data Board = Board {
 data PacMan = PacMan {
     position :: Position,
     directionGoing :: Direction,
-    directionWant :: Maybe Direction
+    directionWant :: Direction
 }
 
 data GhostType = Blinky | Pinky | Inky | Clyde

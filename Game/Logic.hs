@@ -24,8 +24,8 @@ fieldIsWalkable b (x, y) =
 movePacMan :: Board -> Direction -> PacMan -> PacMan
 movePacMan b dir pac =
   if fieldIsWalkable b next
-  then pac {position = next, directionGoing = dir, directionWant = Nothing}
-  else pac {directionWant = Just dir}
+  then pac {position = next, directionGoing = dir, directionWant = dir}
+  else pac {directionWant = dir}
 
   where
     next = stepPosition dir (position pac)
