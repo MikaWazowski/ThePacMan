@@ -1,6 +1,5 @@
 module Game.Controller where
 
-import Game.Logic (movePacMan)
 import Game.Types
 import Graphics.Gloss.Interface.Pure.Game
 
@@ -24,4 +23,4 @@ handleInput (EventKey (SpecialKey KeyRight) Down _ _) state = move East state
 handleInput _ state = state
 
 move :: Direction -> GameState -> GameState
-move direction state = state { pacMan = movePacMan (board state) direction (pacMan state) }
+move direction state = state { pacMan = (pacMan state) { directionWant = direction } }

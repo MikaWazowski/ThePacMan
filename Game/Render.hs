@@ -29,11 +29,11 @@ render state = pictures (grid ++ wallPictures ++ [pacPicture, scorePicture])
         mouth = color black (polygon [(0, 0), (radius, radius / 2), (radius, -radius / 2)])
         eye = translate (-radius * 0.15) eyeY (color black (circleSolid (radius * 0.2)))
 
-        eyeY = case directionWant (pacMan state) of
+        eyeY = case directionGoing (pacMan state) of
           West -> -radius * 0.45
           _    ->  radius * 0.45
 
-        angle = case directionWant (pacMan state) of
+        angle = case directionGoing (pacMan state) of
           East  -> 0
           South -> 90
           West  -> 180
