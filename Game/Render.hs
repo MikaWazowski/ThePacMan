@@ -8,10 +8,15 @@ tileSize :: Float
 tileSize = 48
 
 render :: GameState -> Picture
-render state = pictures (grid ++ wallPictures ++ [pacPicture])
+render state = pictures (grid ++ wallPictures ++ [pacPicture, scorePicture])
   where
     gameBoard = board state
     size = boardDimensions gameBoard
+    boardWidth = fromIntegral size * tileSize
+
+    scorePicture =
+      translate (-boardWidth / 2) (-boardWidth / 2 - 40) $ scale 0.2 0.2 (drawScore state)
+
     -- We use a 0 based grid since that is easier for future calculations.
     grid = [drawTile size (x, y) (color blue (rectangleWire tileSize tileSize)) | x <- [0 .. size - 1], y <- [0 .. size - 1]]
 
@@ -33,6 +38,8 @@ render state = pictures (grid ++ wallPictures ++ [pacPicture])
           South -> 90
           West  -> 180
           North -> 270
+    
+    score = drawScore state
         
 
 drawWall :: Int -> Wall -> [Picture]
@@ -51,3 +58,8 @@ drawTile size (x, y) picture = translate screenX screenY picture
     -- tileSize / 2 makes sure that the starting point of drawing the rectangle is also in the middle and not on the edge of the first tile (what it would be if we didn't add this)
     screenX = fromIntegral x * tileSize - fromIntegral size * tileSize / 2 + tileSize / 2
     screenY = fromIntegral y * tileSize - fromIntegral size * tileSize / 2 + tileSize / 2
+
+drawScore :: GameState -> Picture
+drawScore state = color white (text (show scoreShow))
+  where 
+    scoreShow = score state

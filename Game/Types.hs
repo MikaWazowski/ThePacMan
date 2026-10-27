@@ -38,6 +38,7 @@ data Dot = Dot {
 }
 
 data GameStatus = Ongoing | Paused | NStarted | Lost | Won
+    deriving (Eq)
 
 data GameState = GameState {
     board :: Board,

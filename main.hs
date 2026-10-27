@@ -1,5 +1,5 @@
 module Main where
-
+import Game.Update
 import Game.Controller
 import Game.Render
 import Game.Types
@@ -15,10 +15,6 @@ main = play
   render          
   handleInput
   step
-
--- Time-based part always needed by play but isn't implemented yet.
-step :: Float -> GameState -> GameState
-step _ state = state
 
 initialState :: GameState
 initialState = GameState
