@@ -8,7 +8,8 @@ tileSize :: Float
 tileSize = 48
 
 render :: GameState -> Picture
-render state = pictures (grid ++ wallPictures ++ [pacPicture, scorePicture])
+-- pictures expects a list of pictures
+render state = pictures (grid ++ wallPictures ++ pelletPicture ++ [pacPicture, scorePicture])
   where
     gameBoard = board state
     size = boardDimensions gameBoard
@@ -39,7 +40,8 @@ render state = pictures (grid ++ wallPictures ++ [pacPicture, scorePicture])
           West  -> 180
           North -> 270
     
-    score = drawScore state
+    -- Draw a dot for every dot that is not eaten yet.
+    pelletPicture = [drawTile size (dotPosition dot) (drawPellet (dotType dot)) | dot <- dots state, not (eaten dot)]
         
 
 drawWall :: Int -> Wall -> [Picture]
@@ -63,3 +65,7 @@ drawScore :: GameState -> Picture
 drawScore state = color white (text (show scoreShow))
   where 
     scoreShow = score state
+
+drawPellet :: DotType -> Picture
+drawPellet Small = color green (circleSolid (tileSize * 0.2))
+drawPellet Big = color red (circleSolid (tileSize * 0.5))

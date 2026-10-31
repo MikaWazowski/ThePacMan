@@ -31,6 +31,8 @@ data Ghost = Ghost {
 }
 
 data DotType = Small | Big
+    deriving (Eq)
+    
 data Dot = Dot {
     eaten :: Bool,
     dotType :: DotType,
