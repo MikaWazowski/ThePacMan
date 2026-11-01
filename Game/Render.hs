@@ -8,7 +8,7 @@ tileSize :: Float
 tileSize = 48
 
 render :: GameState -> Picture
-render state = pictures (grid ++ wallPictures ++ [pacPicture, scorePicture])
+render state = pictures (grid ++ wallPictures ++ [pacPicture, scorePicture] ++ ghosts)
   where
     gameBoard = board state
     size = boardDimensions gameBoard
@@ -21,7 +21,7 @@ render state = pictures (grid ++ wallPictures ++ [pacPicture, scorePicture])
     grid = [drawTile size (x, y) (color blue (rectangleWire tileSize tileSize)) | x <- [0 .. size - 1], y <- [0 .. size - 1]]
 
     wallPictures = concatMap (drawWall size) (walls gameBoard)
-
+    
     pacPicture = drawTile size (position (pacMan state)) (rotate angle (pictures [body, mouth, eye]))
       where
         radius = tileSize * 0.36
@@ -31,16 +31,34 @@ render state = pictures (grid ++ wallPictures ++ [pacPicture, scorePicture])
 
         eyeY = case directionGoing (pacMan state) of
           West -> -radius * 0.45
-          _    ->  radius * 0.45
+          _ -> radius * 0.45
 
         angle = case directionGoing (pacMan state) of
-          East  -> 0
+          East -> 0
           South -> 90
-          West  -> 180
+          West -> 180
           North -> 270
-    
+    ghosts = map (drawGhost size state) (ghost state)
     score = drawScore state
+
+drawGhost :: Int -> GameState -> Ghost -> Picture
+drawGhost size state singleGhost = drawTile size (positionGhost (singleGhost)) (rotate angle (pictures [body, mouth, eye]))
+      where
         
+        radius = tileSize * 0.36
+        body = color yellow (circleSolid radius)
+        mouth = color black (polygon [(0, 0), (radius, radius / 2), (radius, -radius / 2)])
+        eye = translate (-radius * 0.15) eyeY (color black (circleSolid (radius * 0.2)))
+
+        eyeY = case directionGoingGhost (head (ghost state)) of
+          West -> -radius * 0.45
+          _ -> radius * 0.45
+
+        angle = case directionGoingGhost (head (ghost state)) of
+          East -> 0
+          South -> 90
+          West -> 180
+          North -> 270
 
 drawWall :: Int -> Wall -> [Picture]
 drawWall size wall =
@@ -48,8 +66,6 @@ drawWall size wall =
   where
     (wallStartX, wallY) = startPosition wall
     wallEndX = wallStartX + Game.Types.length wall - 1
-
-
 
 drawTile :: Int -> Position -> Picture -> Picture
 drawTile size (x, y) picture = translate screenX screenY picture
@@ -61,5 +77,5 @@ drawTile size (x, y) picture = translate screenX screenY picture
 
 drawScore :: GameState -> Picture
 drawScore state = color white (text (show scoreShow))
-  where 
+  where
     scoreShow = score state
