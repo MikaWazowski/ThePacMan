@@ -2,6 +2,12 @@ module Game.Types where
 
 type Position = (Int, Int)
 data Direction = North | East | West | South
+instance Eq Direction where
+    North == North = True
+    East == East = True
+    West == West = True
+    South == South = True
+
 
 -- The length of a wall is always from left to right
 data Wall = Wall {
