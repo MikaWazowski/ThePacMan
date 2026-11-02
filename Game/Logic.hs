@@ -50,3 +50,4 @@ moveGhost state b posPac g
       Pinky -> stepPosition (logicPurple posPac posGhost dirPac dirGoing) (positionGhost g)
       Inky -> stepPosition (logicInky posPac blinkyPos posGhost dirGoing dirPac) (positionGhost g)
       Clyde -> stepPosition (logicClyde posPac posGhost dirGoing) (positionGhost g)
+    --  Clyde -> stepPosition (closestPoint posPac posGhost dirGoing) (positionGhost g)

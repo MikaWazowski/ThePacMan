@@ -46,7 +46,7 @@ drawGhost size state singleGhost = drawTile size (positionGhost (singleGhost)) (
       where
         
         radius = tileSize * 0.36
-        body = color yellow (circleSolid radius)
+        body = color colour (circleSolid radius)
         mouth = color black (polygon [(0, 0), (radius, radius / 2), (radius, -radius / 2)])
         eye = translate (-radius * 0.15) eyeY (color black (circleSolid (radius * 0.2)))
 
@@ -59,6 +59,11 @@ drawGhost size state singleGhost = drawTile size (positionGhost (singleGhost)) (
           South -> 90
           West -> 180
           North -> 270
+        colour = case (name singleGhost) of
+          Blinky -> red
+          Pinky -> green
+          Clyde -> orange
+          Inky -> cyan
 
 drawWall :: Int -> Wall -> [Picture]
 drawWall size wall =

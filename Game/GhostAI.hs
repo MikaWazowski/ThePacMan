@@ -35,13 +35,16 @@ logicInky (pacX, pacY) (bliX, bliY) inkPos dirInk dirPac =
    in closestPoint (pacX, pacY) inkPos dirInk
 
 logicClyde :: Position  -> Position -> Direction -> Direction
-logicClyde (xPac, ypac) (clyX, clyY) dirBlin
-  | (afstand (xPac, ypac) (clyX, clyY)) > 64 = closestPoint (xPac, ypac) (clyX, clyY) dirBlin
+logicClyde (xPac, ypac) (clyX, clyY) dirBlin 
+  | (afstand (xPac, ypac) (clyX, clyY) 32) = closestPoint (xPac, ypac) (clyX, clyY) dirBlin  
   -- (0,0) moet linker corner zijn
   | otherwise = closestPoint (0, 0) (clyX, clyY) dirBlin
 
-afstand :: Position -> Position -> Int
-afstand (pacX, pacY) (clyX, clyY) = (pacX - clyX) ^ 2 + (pacY - clyY) ^ 2
+afstand :: Position -> Position -> Int -> Bool
+afstand (pacX, pacY) (clyX, clyY) tileSize 
+--de 1 moet eigenlijk een grid van 8 zijn, maar onze grid is te klein, dus die moeten we later groter gaan maken. 
+ |abs (pacX - clyX) > 1 = True
+ |otherwise =  False
 
 fullTime :: Position -> Position -> Direction -> Direction
 fullTime posPac posGhost dirGhost = closestPoint posPac posGhost dirGhost
