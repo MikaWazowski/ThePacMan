@@ -34,7 +34,8 @@ data Ghost = Ghost {
     name :: GhostType,
     positionGhost :: Position,
     statusGhost :: GhostStatus,
-    directionGoingGhost :: Direction
+    directionGoingGhost :: Direction,
+    stuckTimer :: Int
 }
 
 data DotType = Small | Big

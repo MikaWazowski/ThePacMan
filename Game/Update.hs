@@ -28,7 +28,8 @@ updatePacMan time state = moveTicks ticks state
         wanted = directionWant pac
         ghostvarlijst = ghost currentState
         pacPos = position pac
-        ghosts = map (moveGhost currentState gameBoard pacPos) ghostvarlijst
+        ghosts = map (moveGhost currentState gameBoard stucktimer pacPos) ghostvarlijst
+        stucktimer = stucktimer + 1
        -- ghostPos = positionGhost ghostMoved
      
 
@@ -39,31 +40,6 @@ updatePacMan time state = moveTicks ticks state
             then wanted
             else directionGoing pac
 
-
-
--- updateGhost :: Float -> GameState -> GameState
--- updateGhost time state = moveTicks ticks state
---   where
---     oldTime = timerOngoing state
---     movementSpeed = 5
-
---     -- currently step gets called 30 times a second, but packman only moves 5 times per second
---     ticks = floor ((oldTime + time) * movementSpeed) - floor (oldTime * movementSpeed)
-
---     moveTicks n currentState
---       | n <= 0 = currentState
---       | otherwise = moveTicks (n - 1) (moveOne currentState)
-
---     moveOne currentState = currentState {ghost = [moveGhost gameBoard direction pacPos ghostPos ghostvar]}
---       where
---         gameBoard = board currentState
---         pac = pacMan currentState
---         ghostvarlijst = ghost currentState
---         ghostvar = head ghostvarlijst
---         pacPos = position pac
---         ghostPos = positionGhost ghostvar
---         wanted = directionWant pac
---         direction = directionGoingGhost ghostvar
 
 updateScore :: Float -> GameState -> GameState
 updateScore time state =
