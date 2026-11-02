@@ -23,6 +23,9 @@ positionToDirection2 (x, y) (x2, y2)
   |(y > y2) = South
   |(y < y2) = North
 
+
+
+
 fieldIsWalkable2 :: Board -> Position -> Bool
 fieldIsWalkable2 b (x, y) =
   x >= 0
@@ -62,15 +65,25 @@ closestPoint bord doel spook huidig
     start = [ (n, positionToDirection2 spook n)
             | n <- neighbours bord spook [(0,1),(1,0),(0,-1),(-1,0)] [spook] ]
 
+toWalkable :: Board -> Position -> Direction -> Position
+toWalkable b (x, y) richting 
+  | not (fieldIsWalkable2 b (x, y) ) = toWalkable b newPosition richting
+  | otherwise = (x, y) where
+    newPosition = case richting of
+      North -> (x, y -1)
+      East ->(x -1, y)
+      South -> (x, y +1)
+      West ->(x+1, y)
 
 
 logicPurple :: Board -> Position -> Position -> Direction -> Direction -> Direction
 logicPurple b (pacX, pacY) (purX, purY) dirPac dirPur
   | (pacX, pacY) == (purX, purY) = dirPur
-  | dirPac == North = closestPoint b (pacX, pacY + 4) (purX, purY) dirPur
-  | dirPac == East = closestPoint b (pacX + 4, pacY) (purX, purY) dirPur
-  | dirPac == South = closestPoint b (pacX, pacY - 4) (purX, purY) dirPur
-  | otherwise = closestPoint b (pacX - 4, pacY) (purX, purY) dirPur
+  | dirPac == North = closestPoint b (toWalkable b (pacX, pacY + 4) North ) (purX, purY) dirPur
+  | dirPac == East = closestPoint b (toWalkable b(pacX + 4, pacY) East  ) (purX, purY) dirPur
+  | dirPac == South = closestPoint b (toWalkable b(pacX, pacY - 4) South ) (purX, purY) dirPur
+  | otherwise = closestPoint b (toWalkable b(pacX - 4, pacY) West ) (purX, purY) dirPur where
+    
 
 logicInky :: Board ->  Position -> Position -> Position -> Direction -> Direction -> Direction
 logicInky b (pacX, pacY) (bliX, bliY) inkPos dirInk dirPac =
