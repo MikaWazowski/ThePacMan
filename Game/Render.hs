@@ -82,7 +82,19 @@ drawGhost g = pictures (colorG body : [eye x | x <- [radius * 0.2, radius * 0.8]
                       pictures [translate x (-tileSize * 0.3) (circleSolid (radius / 3)) | x <- [-2 * radius / 3, 0, 2 * radius / 3]]
                     ]
 
-    eye x = translate x (tileSize * 0.045) (pictures [ color white (circleSolid (radius * 0.3)), translate (radius * 0.15) 0 (color blue (circleSolid (radius * 0.12)))])
+    eye x = translate eyePositionX (tileSize * 0.045 + eyeY) (pictures [color white (circleSolid (radius * 0.3)), translate pupilX pupilY (color blue (circleSolid (radius * 0.12)))])
+      where
+        eyePositionX = case directionGoingGhost g of
+          West -> -x + eyeX
+          _ -> x + eyeX
+
+    (eyeX, eyeY, pupilX, pupilY) = case directionGoingGhost g of
+      West  -> (-placement, 0, -placement, 0)
+      East  -> (placement, 0, placement, 0)
+      North -> (0, 0, 0, placement)
+      South -> (0, 0, 0, -placement)
+
+    placement = radius * 0.2
 
     colorG = case name g of
       Blinky -> color red
