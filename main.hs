@@ -20,7 +20,7 @@ initialState :: GameState
 initialState = GameState
   { board = Board [Wall 4 (3, 3), Wall 3 (2, 7)] 10
   , pacMan = PacMan (1, 1) East East
-  , ghost = []
+  , ghost = [Ghost Blinky (5, 5) Normal East]
 
   --Would be nice to later make sure that small dots just spawn on the places where nothing is currently
   , dots = [ Dot False Small (2, 5),

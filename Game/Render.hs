@@ -9,7 +9,7 @@ tileSize = 48
 
 render :: GameState -> Picture
 -- pictures expects a list of pictures
-render state = pictures (grid ++ wallPictures ++ pelletPicture ++ [pacPicture, scorePicture])
+render state = pictures (grid ++ wallPictures ++ pelletPicture ++ ghostPictures ++ [pacPicture, scorePicture])
   where
     gameBoard = board state
     size = boardDimensions gameBoard
@@ -42,6 +42,8 @@ render state = pictures (grid ++ wallPictures ++ pelletPicture ++ [pacPicture, s
     
     -- Draw a dot for every dot that is not eaten yet.
     pelletPicture = [drawTile size (dotPosition dot) (drawPellet (dotType dot)) | dot <- dots state, not (eaten dot)]
+
+    ghostPictures = [drawTile size (positionGhost g) (drawGhost g) | g <- ghost state]
         
 
 drawWall :: Int -> Wall -> [Picture]
@@ -69,3 +71,26 @@ drawScore state = color white (text (show scoreShow))
 drawPellet :: DotType -> Picture
 drawPellet Small = color green (circleSolid (tileSize * 0.2))
 drawPellet Big = color red (circleSolid (tileSize * 0.5))
+
+drawGhost :: Ghost -> Picture
+drawGhost g = pictures (colorG body : [eye x | x <- [radius * 0.2, radius * 0.8]])
+  where
+    radius = tileSize * 0.3
+    body = pictures [ 
+                      -- head
+                      translate 0 (tileSize * 0.1) (circleSolid radius), 
+
+                      -- rectangle for main body
+                      translate 0 (-tileSize * 0.1) (rectangleSolid (2 * radius) (tileSize * 0.3)), 
+
+                      -- small circle that form the lower part of the body
+                      pictures [translate x (-tileSize * 0.3) (circleSolid (radius / 3)) | x <- [-2 * radius / 3, 0, 2 * radius / 3]]
+                    ]
+
+    eye x = translate x (tileSize * 0.045) (pictures [ color white (circleSolid (radius * 0.3)), translate (radius * 0.15) 0 (color blue (circleSolid (radius * 0.12)))])
+
+    colorG = case name g of
+      Blinky -> color red
+      Pinky  -> color rose
+      Inky   -> color blue
+      Clyde  -> color orange
