@@ -54,28 +54,21 @@ movePacMan b dir pac =
   where
     next = stepPosition dir (position pac)
 
-moveGhost :: GameState -> Board -> Int -> Position -> Ghost -> Ghost
-moveGhost state b stuckTimer posPac g
-  | fieldIsWalkable b nextPos = g {positionGhost = nextPos, directionGoingGhost = dirWant, stuckTimer = 0}
-  | fieldIsWalkable b nextPos = g {positionGhost = nextPos, directionGoingGhost = dirWant, stuckTimer = 0}
-  | otherwise = g {stuckTimer = stuckTimer + 1}
+moveGhost :: GameState -> Board -> Position -> Ghost -> Ghost
+moveGhost state b posPac g
+  | fieldIsWalkable b nextPos = g {positionGhost = nextPos, directionGoingGhost = direction, stuckTimer = 0}
+  | otherwise = g {stuckTimer = stuckTimer g + 1}
   where
-    -- if fieldIsWalkable b next
-    -- then
-    -- else ghost
     pac = pacMan state
-    blinky = head (ghost state)
-    blinkyPos = positionGhost blinky
+    blinkyPos = positionGhost (head (ghost state))
     dirPac = directionGoing pac
-    dirWant = fullTime b posPac posGhost dirGoing
     posGhost = positionGhost g
     dirGoing = directionGoingGhost g
 
-    nextPos = case name g of
-      Blinky -> stepPosition (closestPoint b posPac posGhost dirGoing) (positionGhost g)
-     -- Blinky -> stepPosition (routes board posPac posGhost dirGoing) (positionGhost g)
-      Pinky -> stepPosition (logicPurple b posPac posGhost dirPac dirGoing) (positionGhost g)
-      Inky -> stepPosition (logicInky b posPac blinkyPos posGhost dirGoing dirPac) (positionGhost g)
-      Clyde -> stepPosition (logicClyde b posPac posGhost dirGoing) (positionGhost g)
+    direction = case name g of
+      Blinky -> closestPoint b posPac posGhost dirGoing
+      Pinky -> logicPurple b posPac posGhost dirPac dirGoing
+      Inky -> logicInky b posPac blinkyPos posGhost dirGoing dirPac
+      Clyde -> logicClyde b posPac posGhost dirGoing
 
---  Clyde -> stepPosition (closestPoint posPac posGhost dirGoing) (positionGhost g)
+    nextPos = stepPosition direction posGhost

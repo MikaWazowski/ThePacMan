@@ -28,6 +28,7 @@ data PacMan = PacMan {
 }
 
 data GhostType = Blinky | Pinky | Inky | Clyde
+    deriving (Eq)
 data GhostStatus = Afraid Float | Normal | Return | Waiting
 
 data Ghost = Ghost {
@@ -39,6 +40,8 @@ data Ghost = Ghost {
 }
 
 data DotType = Small | Big
+    deriving (Eq)
+
 data Dot = Dot {
     eaten :: Bool,
     dotType :: DotType,

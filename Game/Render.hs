@@ -8,7 +8,7 @@ tileSize :: Float
 tileSize = 48
 
 render :: GameState -> Picture
-render state = pictures (grid ++ wallPictures ++ [pacPicture, scorePicture] ++ ghosts)
+render state = pictures (grid ++ wallPictures ++ pelletPicture ++ ghostPictures ++ [pacPicture, scorePicture])
   where
     gameBoard = board state
     size = boardDimensions gameBoard
@@ -38,32 +38,10 @@ render state = pictures (grid ++ wallPictures ++ [pacPicture, scorePicture] ++ g
           South -> 90
           West -> 180
           North -> 270
-    ghosts = map (drawGhost size state) (ghost state)
-    score = drawScore state
+    -- Draw a dot for every dot that is not eaten yet.
+    pelletPicture = [drawTile size (dotPosition dot) (drawPellet (dotType dot)) | dot <- dots state, not (eaten dot)]
 
-drawGhost :: Int -> GameState -> Ghost -> Picture
-drawGhost size state singleGhost = drawTile size (positionGhost (singleGhost)) (rotate angle (pictures [body, mouth, eye]))
-      where
-        
-        radius = tileSize * 0.36
-        body = color colour (circleSolid radius)
-        mouth = color black (polygon [(0, 0), (radius, radius / 2), (radius, -radius / 2)])
-        eye = translate (-radius * 0.15) eyeY (color black (circleSolid (radius * 0.2)))
-
-        eyeY = case directionGoingGhost (head (ghost state)) of
-          West -> -radius * 0.45
-          _ -> radius * 0.45
-
-        angle = case directionGoingGhost (head (ghost state)) of
-          East -> 0
-          South -> 90
-          West -> 180
-          North -> 270
-        colour = case (name singleGhost) of
-          Blinky -> red
-          Pinky -> green
-          Clyde -> orange
-          Inky -> cyan
+    ghostPictures = [drawTile size (positionGhost g) (drawGhost g) | g <- ghost state]
 
 drawWall :: Int -> Wall -> [Picture]
 drawWall size wall =
@@ -84,3 +62,30 @@ drawScore :: GameState -> Picture
 drawScore state = color white (text (show scoreShow))
   where
     scoreShow = score state
+
+drawPellet :: DotType -> Picture
+drawPellet Small = color green (circleSolid (tileSize * 0.2))
+drawPellet Big = color red (circleSolid (tileSize * 0.5))
+
+drawGhost :: Ghost -> Picture
+drawGhost g = pictures (colorG body : [eye x | x <- [radius * 0.2, radius * 0.8]])
+  where
+    radius = tileSize * 0.3
+    body = pictures [
+                      -- head
+                      translate 0 (tileSize * 0.1) (circleSolid radius),
+
+                      -- rectangle for main body
+                      translate 0 (-tileSize * 0.1) (rectangleSolid (2 * radius) (tileSize * 0.3)),
+
+                      -- small circle that form the lower part of the body
+                      pictures [translate x (-tileSize * 0.3) (circleSolid (radius / 3)) | x <- [-2 * radius / 3, 0, 2 * radius / 3]]
+                    ]
+
+    eye x = translate x (tileSize * 0.045) (pictures [ color white (circleSolid (radius * 0.3)), translate (radius * 0.15) 0 (color blue (circleSolid (radius * 0.12)))])
+
+    colorG = case name g of
+      Blinky -> color red
+      Pinky  -> color rose
+      Inky   -> color blue
+      Clyde  -> color orange

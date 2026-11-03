@@ -6,13 +6,13 @@ import Game.Types
 step :: Float -> GameState -> GameState
 step time state
   | statusGame state /= Ongoing = state -- The game is not running so no timer has to be run
-  | otherwise = updateScore time (updatePacMan time state)
+  | otherwise = (updatePacMan time state) { timerOngoing = timerOngoing state + time }
 
 updatePacMan :: Float -> GameState -> GameState
 updatePacMan time state = moveTicks ticks state
   where
     oldTime = timerOngoing state
-    movementSpeed = 5
+    movementSpeed = 1
 
     -- currently step gets called 30 times a second, but packman only moves 5 times per second
     ticks = floor ((oldTime + time) * movementSpeed) - floor (oldTime * movementSpeed)
@@ -21,30 +21,37 @@ updatePacMan time state = moveTicks ticks state
       | n <= 0 = currentState
       | otherwise = moveTicks (n - 1) (moveOne currentState)
 
-    moveOne currentState = currentState {pacMan = movePacMan gameBoard direction pac, ghost = ghosts}
+    moveOne currentState = collectDots (currentState { pacMan = movedPac, ghost = movedGhosts })
       where
+        -- Setting local "variables" from the current state of the game
         gameBoard = board currentState
         pac = pacMan currentState
-        wanted = directionWant pac
-        ghostvarlijst = ghost currentState
-        pacPos = position pac
-        ghosts = map (moveGhost currentState gameBoard stucktimer pacPos) ghostvarlijst
-        stucktimer = stucktimer + 1
-       -- ghostPos = positionGhost ghostMoved
-     
+        wantedDirection = directionWant pac
 
-        --moveGhost :: Board -> Position -> Ghost -> Ghost
-       -- directionGhost = directionGoingGhost ghostMoved
-        direction =
-          if fieldIsWalkable gameBoard (stepPosition wanted (position pac))
-            then wanted
-            else directionGoing pac
+        -- See if there is no wall that makes it so that pacman cannot move into its wanted direction
+        moveWantedDir = fieldIsWalkable gameBoard (stepPosition wantedDirection (position pac))
+
+        -- Direction pacman will be moving
+        direction
+          | moveWantedDir   = wantedDirection
+          | otherwise = directionGoing pac
+
+        -- Calculates next position of pacman
+        movedPac = movePacMan gameBoard direction pac
+        movedGhosts = map (moveGhost currentState gameBoard (position movedPac)) (ghost currentState)
 
 
-updateScore :: Float -> GameState -> GameState
-updateScore time state =
-  state {timerOngoing = newTime, score = score state + addedScore}
+collectDots :: GameState -> GameState
+-- Disadvantage of this is that you calculate this for every dot, every tick but i don't know how to fix it otherwise
+collectDots state = state {dots = map eatDot (dots state), score = score state + sum [dotScore dot | dot <- dots state, posPacDot dot]}
   where
-    oldTime = timerOngoing state
-    newTime = oldTime + time
-    addedScore = floor newTime - floor oldTime
+    -- Is pacman currently in the position of an uneated dot
+    posPacDot dot = not (eaten dot) && dotPosition dot == position (pacMan state)
+
+    eatDot dot
+      | posPacDot dot = dot { eaten = True }
+      | otherwise = dot
+
+    dotScore dot = case dotType dot of
+      Small -> 10
+      Big -> 50
