@@ -18,10 +18,12 @@ updatePacMan time state = moveTicks ticks state
     ticks = floor ((oldTime + time) * movementSpeed) - floor (oldTime * movementSpeed)
 
     moveTicks n currentState
-      | n <= 0 = currentState
+      | n <= 0 || statusGame currentState /= Ongoing = currentState
       | otherwise = moveTicks (n - 1) (moveOne currentState)
 
-    moveOne currentState = collectDots (currentState { pacMan = movedPac, ghost = movedGhosts })
+    moveOne currentState
+      | collided = currentState { pacMan = movedPac, ghost = movedGhosts, statusGame = Lost }
+      | otherwise = collectDots (currentState { pacMan = movedPac, ghost = movedGhosts })
       where
         -- Setting local "variables" from the current state of the game
         gameBoard = board currentState
@@ -38,8 +40,11 @@ updatePacMan time state = moveTicks ticks state
 
         -- Calculates next position of pacman
         movedPac = movePacMan gameBoard direction pac
+
+        
         movedGhosts = map (moveGhost currentState gameBoard (position movedPac)) (ghost currentState)
 
+        collided = any (\x -> positionGhost x == position movedPac) movedGhosts
 
 collectDots :: GameState -> GameState
 -- Disadvantage of this is that you calculate this for every dot, every tick but i don't know how to fix it otherwise

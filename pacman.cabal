@@ -9,7 +9,8 @@ executable pacman
   main-is:          main.hs
   hs-source-dirs:   .
   other-modules:    Game.Controller
-                  , Game.Logic
+                   , Game.InitialState
+                   , Game.Logic
                   , Game.Render
                    , Game.Types
                    , Game.Update

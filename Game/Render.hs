@@ -8,7 +8,7 @@ tileSize :: Float
 tileSize = 48
 
 render :: GameState -> Picture
-render state = pictures (grid ++ wallPictures ++ pelletPicture ++ ghostPictures ++ [pacPicture, scorePicture])
+render state = pictures (grid ++ wallPictures ++ pelletPicture ++ ghostPictures ++ [pacPicture, scorePicture, statusPicture])
   where
     gameBoard = board state
     size = boardDimensions gameBoard
@@ -16,6 +16,11 @@ render state = pictures (grid ++ wallPictures ++ pelletPicture ++ ghostPictures 
 
     scorePicture =
       translate (-boardWidth / 2) (-boardWidth / 2 - 40) $ scale 0.2 0.2 (drawScore state)
+
+    statusPicture = case statusGame state of
+      Lost   -> drawStatusOverlay boardWidth "GAME OVER" "Press SPACE to restart" 0.3
+      Paused -> drawStatusOverlay boardWidth "PAUSED" "Press SPACE to resume" 0.2
+      _      -> blank
 
     -- We use a 0 based grid since that is easier for future calculations.
     grid = [drawTile size (x, y) (color blue (rectangleWire tileSize tileSize)) | x <- [0 .. size - 1], y <- [0 .. size - 1]]
@@ -42,6 +47,17 @@ render state = pictures (grid ++ wallPictures ++ pelletPicture ++ ghostPictures 
     pelletPicture = [drawTile size (dotPosition dot) (drawPellet (dotType dot)) | dot <- dots state, not (eaten dot)]
 
     ghostPictures = [drawTile size (positionGhost g) (drawGhost g) | g <- ghost state]
+
+drawStatusOverlay :: Float -> String -> String -> Float -> Picture
+drawStatusOverlay boardWidth title message middleTitle = pictures
+  [ 
+    --Background
+    color (makeColor 0 0 0 0.7) (rectangleSolid boardWidth boardWidth)
+    -- Title
+  , translate (-boardWidth * middleTitle) 0 (scale (boardWidth / 1400) (boardWidth / 1400) (color red (text title)))
+    -- Message
+  , translate (-boardWidth * 0.25) (-tileSize) (scale (boardWidth / 3400) (boardWidth / 3400) (color white (text message)))
+  ]
 
 drawWall :: Int -> Wall -> [Picture]
 drawWall size wall =
