@@ -12,7 +12,7 @@ updatePacMan :: Float -> GameState -> GameState
 updatePacMan time state = moveTicks ticks state
   where
     oldTime = timerOngoing state
-    movementSpeed = 1
+    movementSpeed = 5
 
     -- currently step gets called 30 times a second, but packman only moves 5 times per second
     ticks = floor ((oldTime + time) * movementSpeed) - floor (oldTime * movementSpeed)
