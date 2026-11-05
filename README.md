@@ -3,6 +3,7 @@
 You can move PacMan by either using WASD or the arrows on your keyboard. The goal is to get as many points as possible. 
 Colliding with a ghost ends the game. Press Space to start over
 Pause the game by pressing P. Resume it by pressing Space
+On game over, the best score is saved in `highscore.txt`
 
 ## Run
 To start the program run:
