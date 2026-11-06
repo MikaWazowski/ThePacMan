@@ -126,9 +126,9 @@ step time state
 
 --This function updates the gamestate considering new walls, moved pacman, moved Ghosts and new dots. 
 updatePacMan :: Float -> GameState -> Bool ->[Wall] -> [Dot] -> GameState
-updatePacMan time state wallChange muren dotsChange 
+updatePacMan time state wallChange newWalls dotsChange
 --Check if the map needs changing I.E are there new walls/dots. 
-  | wallChange = changeMap state muren dotsChange
+  | wallChange = changeMap state newWalls dotsChange
   | otherwise = moveTicks ticks state
   where
     oldTime = timerOngoing state
@@ -204,5 +204,5 @@ collectDots state = state {dots = map eatDot (dots state), score = score state +
       Big -> 50
 --This function changes the map with new dots and walls. 
 changeMap:: GameState -> [Wall] -> [Dot]-> GameState
-changeMap state wallsNieuw newDots = addSmallDots (state {board = nieuwboard, dots = newDots}) where
-  nieuwboard = (board state) {walls = wallsNieuw}
+changeMap state newWalls newDots = addSmallDots (state {board = newBoard, dots = newDots}) where
+  newBoard = (board state) {walls = newWalls}

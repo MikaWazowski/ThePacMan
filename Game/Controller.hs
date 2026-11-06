@@ -103,9 +103,9 @@ wallsToString :: [Wall] -> String
 --Recursive base case. 
 wallsToString [] = ""
 --Take every wall, converting is, and placing it at the front of the other walls in string form. 
-wallsToString (x : xs) = "w " ++ (show (fst wallPositie)) ++ " " ++ (show (snd wallPositie)) ++ "\n" ++ wallsToString xs
+wallsToString (x : xs) = "w " ++ (show (fst wallPosition)) ++ " " ++ (show (snd wallPosition)) ++ "\n" ++ wallsToString xs
   where
-    wallPositie = startPosition x
+    wallPosition = startPosition x
 
 --Converting every dot to a String
 dotsToString :: [Dot] -> String
@@ -138,10 +138,10 @@ createWallList :: GameState -> [String] -> [Wall]
 createWallList state [] = []
 --Converting every line in the file (which is a single wall or dot.) to a wall. 
 createWallList state (x : xs) =
-  let positie = getPosition (words x)
-      wallCheck = getFirst positie
-      xWall = getSecond positie
-      yWall = getThird positie
+  let position = getPosition (words x)
+      wallCheck = getFirst position
+      xWall = getSecond position
+      yWall = getThird position
       --Place wall in the list if it is definied as a wall in the file. 
    in if wallCheck == "w"
         then
@@ -154,10 +154,10 @@ createDotList :: GameState -> [String] -> [Dot]
 createDotList state [] = []
 --Converting every line in the file (which is a single wall or dot.) to a dot
 createDotList state (x : xs) = 
-  let positie = getPosition (words x)
-      wallCheck = getFirst positie
-      xWall = getSecond positie
-      yWall = getThird positie
+  let position = getPosition (words x)
+      wallCheck = getFirst position
+      xWall = getSecond position
+      yWall = getThird position
             --Place dot in the list if it is definied as a dot in the file. 
    in if wallCheck == "d"
         then
@@ -197,11 +197,11 @@ insideBoard state (x, y) = x >= 0 && y >= 0 && x < size && y < size
 
 --Convert two coordinate floats to a cell position. 
 coorToCell :: Float -> Float -> Position
-coorToCell x y = (naarCel x, naarCel y)
+coorToCell x y = (toCell x, toCell y)
 
 --Convert a coordinate float to a cell position. 
-naarCel :: Float -> Int
-naarCel x = floor ((x + 8 * 32) / 32)
+toCell :: Float -> Int
+toCell x = floor ((x + 8 * 32) / 32)
 
 --Move pacman in the direction stated. 
 move :: Direction -> GameState -> GameState

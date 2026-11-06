@@ -4,27 +4,12 @@ import Game.Types
 import System.Random (StdGen, randomR, randomRIO)
 import System.IO.Unsafe (unsafePerformIO)
 
--- closestPoint :: Position -> Position -> Direction -> Direction
--- closestPoint (xPac, ypac) (xBlink, yBlink) dirBlin
---   | (xPac, ypac) == (xBlink, yBlink) = dirBlin
---   | otherwise = snd (minimum lijst)
---   where
---     -- The reason for the lack of the sqrt is because our position is a tuple of type (int, int)
---     -- For checking what is closer, the sqrt is not needed.
---     afstand = ((xPac - xBlink) ^ 2 + (ypac - yBlink) ^ 2)
---     afstandN = ((xPac - xBlink) ^ 2 + (ypac - (yBlink + 1)) ^ 2)
---     afstandE = ((xPac - (xBlink + 1)) ^ 2 + (ypac - yBlink) ^ 2)
---     afstandS = ((xPac - xBlink) ^ 2 + (ypac - (yBlink - 1)) ^ 2)
---     afstandW = ((xPac - (xBlink - 1)) ^ 2 + (ypac - yBlink) ^ 2)
---     lijst = [(afstandN, North), (afstandE, East), (afstandS, South), (afstandW, West)]
 positionToDirection2:: Position -> Position -> Direction
 positionToDirection2 (x, y) (x2, y2) 
   |(x > x2) = West
   |(x < x2) = East
   |(y > y2) = South
   |(y < y2) = North
-
-
 
 
 fieldIsWalkable2 :: Board -> Position -> Bool
@@ -40,52 +25,52 @@ fieldIsWalkable2 b (x, y) =
        in y == wy && x >= wx && x < wx + Game.Types.lengthWall w
 
 routes :: Board -> Position -> [(Position, Direction)] -> [Position] -> Direction
---             ^ doel         ^ wachtrij                 ^ visited
+--             ^ target       ^ queue                    ^ visited
 routes _ _ [] _ = North
-routes bord (xTarget, yTarget) (((xBuren, yBuren), richtingBuur) : xs) bezochtlijst =  winnaar where
-     winnaar 
-      |(xTarget, yTarget) == (xBuren, yBuren)  = richtingBuur
-      |otherwise = routes bord (xTarget, yTarget) (xs ++ nieuw) (nieuweburen++ bezochtlijst)
+routes gameBoard (xTarget, yTarget) (((xNeighbor, yNeighbor), neighborDirection) : xs) visited = winner where
+     winner
+      |(xTarget, yTarget) == (xNeighbor, yNeighbor) = neighborDirection
+      |otherwise = routes gameBoard (xTarget, yTarget) (xs ++ new) (newNeighbors ++ visited)
       where 
-      nieuweburen = (neighbours bord (xBuren, yBuren) [(0,1),(1,0),(0,-1),(-1,0)]) bezochtlijst
-      nieuw = [ (n, richtingBuur) | n <- nieuweburen ]
-    --winnaart = [((x, y), North)]
+      newNeighbors = neighbours gameBoard (xNeighbor, yNeighbor) [(0,1),(1,0),(0,-1),(-1,0)] visited
+      new = [ (n, neighborDirection) | n <- newNeighbors ]
+    --winner = [((x, y), North)]
 
 neighbours :: Board -> Position -> [Position] -> [Position] -> [Position]
-neighbours bord positie [] bezochtlijst = []
-neighbours bord (x, y) ((xcheck, ycheck) : xs) bezochtlijst
-  | fieldIsWalkable2 bord (x + xcheck, y + ycheck) && (notElem (x + xcheck, y + ycheck) bezochtlijst)= (x + xcheck, y + ycheck) : neighbours bord (x, y) xs bezochtlijst
-  | otherwise = neighbours bord (x, y) xs bezochtlijst
+neighbours gameBoard position [] visited = []
+neighbours gameBoard (x, y) ((xcheck, ycheck) : xs) visited
+  | fieldIsWalkable2 gameBoard (x + xcheck, y + ycheck) && (notElem (x + xcheck, y + ycheck) visited)= (x + xcheck, y + ycheck) : neighbours gameBoard (x, y) xs visited
+  | otherwise = neighbours gameBoard (x, y) xs visited
 
 closestPoint :: Board -> Ghost -> Position -> Position -> Direction -> Direction
-closestPoint bord g doel spook huidig
-  | doel == spook  = huidig
-  | null start    = huidig
-  | status == Afraid     =  (unsafePerformIO (randomDirIO huidig))
-  | otherwise     = routes bord doel start (spook : map fst start)
+closestPoint gameBoard g target ghostPosition currentDirection
+  | target == ghostPosition = currentDirection
+  | null start = currentDirection
+  | status == Afraid = unsafePerformIO (randomDirIO currentDirection)
+  | otherwise = routes gameBoard target start (ghostPosition : map fst start)
   where
-    start = [ (n, positionToDirection2 spook n)
-            | n <- neighbours bord spook [(0,1),(1,0),(0,-1),(-1,0)] [spook] ]
+    start = [ (n, positionToDirection2 ghostPosition n)
+            | n <- neighbours gameBoard ghostPosition [(0,1),(1,0),(0,-1),(-1,0)] [ghostPosition] ]
     status = statusGhost g
 
 
-tegenovergesteld :: Direction -> Direction 
-tegenovergesteld North = South
-tegenovergesteld South = North
-tegenovergesteld West = East
-tegenovergesteld East = West
+oppositeDir :: Direction -> Direction
+oppositeDir North = South
+oppositeDir South = North
+oppositeDir West = East
+oppositeDir East = West
 
 randomDirIO :: Direction -> IO Direction
 randomDirIO dir = do
-  let options = filter (/= tegenovergesteld dir) [North, East, South, West]
+  let options = filter (/= oppositeDir dir) [North, East, South, West]
   i <- randomRIO (0, length options - 1)
   return (options !! i)
 
 toWalkable :: Board -> Position -> Direction -> Position
-toWalkable b (x, y) richting 
-  | not (fieldIsWalkable2 b (x, y) ) = toWalkable b newPosition richting
+toWalkable b (x, y) direction
+  | not (fieldIsWalkable2 b (x, y) ) = toWalkable b newPosition direction
   | otherwise = (x, y) where
-    newPosition = case richting of
+    newPosition = case direction of
       North -> (x, y -1)
       East ->(x -1, y)
       South -> (x, y +1)
