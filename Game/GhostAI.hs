@@ -1,7 +1,8 @@
 module Game.GhostAI where
 
 import Game.Types
-
+import System.Random (StdGen, randomR, randomRIO)
+import System.IO.Unsafe (unsafePerformIO)
 
 -- closestPoint :: Position -> Position -> Direction -> Direction
 -- closestPoint (xPac, ypac) (xBlink, yBlink) dirBlin
@@ -36,7 +37,7 @@ fieldIsWalkable2 b (x, y) =
   where
     wallPlace w =
       let (wx, wy) = startPosition w
-       in y == wy && x >= wx && x < wx + Game.Types.length w
+       in y == wy && x >= wx && x < wx + Game.Types.lengthWall w
 
 routes :: Board -> Position -> [(Position, Direction)] -> [Position] -> Direction
 --             ^ doel         ^ wachtrij                 ^ visited
@@ -56,14 +57,29 @@ neighbours bord (x, y) ((xcheck, ycheck) : xs) bezochtlijst
   | fieldIsWalkable2 bord (x + xcheck, y + ycheck) && (notElem (x + xcheck, y + ycheck) bezochtlijst)= (x + xcheck, y + ycheck) : neighbours bord (x, y) xs bezochtlijst
   | otherwise = neighbours bord (x, y) xs bezochtlijst
 
-closestPoint :: Board -> Position -> Position -> Direction -> Direction
-closestPoint bord doel spook huidig
-  | doel == spook = huidig
+closestPoint :: Board -> Ghost -> Position -> Position -> Direction -> Direction
+closestPoint bord g doel spook huidig
+  | doel == spook  = huidig
   | null start    = huidig
+  | status == Afraid     =  (unsafePerformIO (randomDirIO huidig))
   | otherwise     = routes bord doel start (spook : map fst start)
   where
     start = [ (n, positionToDirection2 spook n)
             | n <- neighbours bord spook [(0,1),(1,0),(0,-1),(-1,0)] [spook] ]
+    status = statusGhost g
+
+
+tegenovergesteld :: Direction -> Direction 
+tegenovergesteld North = South
+tegenovergesteld South = North
+tegenovergesteld West = East
+tegenovergesteld East = West
+
+randomDirIO :: Direction -> IO Direction
+randomDirIO dir = do
+  let options = filter (/= tegenovergesteld dir) [North, East, South, West]
+  i <- randomRIO (0, length options - 1)
+  return (options !! i)
 
 toWalkable :: Board -> Position -> Direction -> Position
 toWalkable b (x, y) richting 
@@ -76,38 +92,37 @@ toWalkable b (x, y) richting
       West ->(x+1, y)
 
 
-logicPurple :: Board -> Position -> Position -> Direction -> Direction -> Direction
-logicPurple b (pacX, pacY) (purX, purY) dirPac dirPur
+logicPurple :: Board -> Ghost -> Position -> Position -> Direction -> Direction -> Direction
+logicPurple b g (pacX, pacY) (purX, purY) dirPac dirPur
   | (pacX, pacY) == (purX, purY) = dirPur
-  | dirPac == North = closestPoint b (toWalkable b (pacX, pacY + 4) North ) (purX, purY) dirPur
-  | dirPac == East = closestPoint b (toWalkable b(pacX + 4, pacY) East  ) (purX, purY) dirPur
-  | dirPac == South = closestPoint b (toWalkable b(pacX, pacY - 4) South ) (purX, purY) dirPur
-  | otherwise = closestPoint b (toWalkable b(pacX - 4, pacY) West ) (purX, purY) dirPur where
+  | dirPac == North = closestPoint b g(toWalkable b (pacX, pacY + 4) North ) (purX, purY) dirPur
+  | dirPac == East = closestPoint b g(toWalkable b(pacX + 4, pacY) East  ) (purX, purY) dirPur
+  | dirPac == South = closestPoint b g(toWalkable b(pacX, pacY - 4) South ) (purX, purY) dirPur
+  | otherwise = closestPoint b g(toWalkable b(pacX - 4, pacY) West ) (purX, purY) dirPur where
     
 
-logicInky :: Board ->  Position -> Position -> Position -> Direction -> Direction -> Direction
-logicInky b (pacX, pacY) (bliX, bliY) inkPos dirInk dirPac =
-  let afstand =
-        case dirPac of
-          North -> (pacX + (pacX - bliX) * 2, pacY + 2 + (pacY - bliY) * 2)
-          South -> (pacX + (pacX - bliX) * 2, pacY - 2 + (pacY - bliY) * 2)
-          West -> (pacX - 2 + (pacX - bliX) * 2, pacY + (pacY - bliY) * 2)
-          East -> (pacX + 2 + (pacX - bliX) * 2, pacY + (pacY - bliY) * 2)
-   in closestPoint b (pacX, pacY) inkPos dirInk
+logicInky :: Board -> Ghost->  Position -> Position -> Position -> Direction -> Direction -> Direction
+logicInky b g (pacX, pacY) (bliX, bliY) inkPos dirInk dirPac =
+  closestPoint b g (keepInBoard b target) inkPos dirInk
+  where
+    (dx, dy) = case dirPac of
+      North -> (0, 2)
+      South -> (0, -2)
+      East  -> (2, 0)
+      West  -> (-2, 0)
+    -- Double the vector from Blinky to the tile two steps ahead of Pac-Man.
+    target = (2 * (pacX + dx) - bliX, 2 * (pacY + dy) - bliY)
 
-logicClyde :: Board -> Position  -> Position -> Direction -> Direction
-logicClyde b (xPac, ypac) (clyX, clyY) dirBlin 
-  | (afstand (xPac, ypac) (clyX, clyY) 32) = closestPoint  b (xPac, ypac) (clyX, clyY) dirBlin  
-  -- (0,0) moet linker corner zijn
-  | otherwise = closestPoint b  (0, 0) (clyX, clyY) dirBlin
+-- Make sure the target position stays in board
+keepInBoard :: Board -> Position -> Position
+keepInBoard b (x, y) = (clamp x, clamp y)
+  where
+    clamp coordinate = max 0 (min (boardDimensions b - 1) coordinate)
 
-afstand :: Position -> Position -> Int -> Bool
-afstand (pacX, pacY) (clyX, clyY) tileSize 
---de 1 moet eigenlijk een grid van 8 zijn, maar onze grid is te klein, dus die moeten we later groter gaan maken. 
- |abs (pacX - clyX) > 1 = True
- |otherwise =  False
+distanceSquared :: Position -> Position -> Int
+distanceSquared (x1, y1) (x2, y2) = (x1 - x2) ^ 2 + (y1 - y2) ^ 2
 
-fullTime :: Board ->  Position -> Position -> Direction -> Direction
-fullTime posPac posGhost dirGhost = closestPoint posPac posGhost dirGhost
-
--- if stuck implementeren
+logicClyde :: Board -> Ghost-> Position  -> Position -> Direction -> Direction
+logicClyde b g pacPos clydePos dirClyde
+  | distanceSquared pacPos clydePos >= 64 = closestPoint  b g pacPos clydePos dirClyde
+  | otherwise = closestPoint b  g (0, 0) clydePos dirClyde

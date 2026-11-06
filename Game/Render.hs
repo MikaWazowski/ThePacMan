@@ -2,10 +2,11 @@ module Game.Render where
 
 import Game.Types
 import Graphics.Gloss
+import Game.Logic
 
 -- Needs to be float since the gloss functions expect float numbers, not integers
 tileSize :: Float
-tileSize = 48
+tileSize = 32
 
 render :: GameState -> Picture
 render state = pictures (grid ++ wallPictures ++ pelletPicture ++ ghostPictures ++ [pacPicture, scorePicture, statusPicture])
@@ -19,7 +20,9 @@ render state = pictures (grid ++ wallPictures ++ pelletPicture ++ ghostPictures 
 
     statusPicture = case statusGame state of
       Lost   -> drawStatusOverlay boardWidth "GAME OVER" "Press SPACE to restart" 0.3
+      Won    -> drawStatusOverlay boardWidth "YOU WIN" "Press SPACE to restart" 0.2
       Paused -> drawStatusOverlay boardWidth "PAUSED" "Press SPACE to resume" 0.2
+      Custom -> drawStatusOverlay boardWidth "CUSTOM LEVEL" "SPACE: continue - C: new level" 0.3
       _      -> blank
 
     -- We use a 0 based grid since that is easier for future calculations.
@@ -52,7 +55,7 @@ render state = pictures (grid ++ wallPictures ++ pelletPicture ++ ghostPictures 
     -- Draw a dot for every dot that is not eaten yet.
     pelletPicture = [drawTile size (dotPosition dot) (drawPellet (dotType dot)) | dot <- dots state, not (eaten dot)]
 
-    ghostPictures = [drawTile size (positionGhost g) (drawGhost g) | g <- ghost state]
+    ghostPictures = [drawTile size (positionGhost g) (drawGhost state g) | g <- ghost state, statusGhost g /= Return]
 
 drawStatusOverlay :: Float -> String -> String -> Float -> Picture
 drawStatusOverlay boardWidth title message middleTitle = pictures
@@ -70,7 +73,7 @@ drawWall size wall =
   [drawTile size (x, wallY) (color blue (rectangleSolid tileSize tileSize)) | x <- [wallStartX .. wallEndX]]
   where
     (wallStartX, wallY) = startPosition wall
-    wallEndX = wallStartX + Game.Types.length wall - 1
+    wallEndX = wallStartX + Game.Types.lengthWall wall - 1
 
 drawTile :: Int -> Position -> Picture -> Picture
 drawTile size (x, y) picture = translate screenX screenY picture
@@ -89,8 +92,8 @@ drawPellet :: DotType -> Picture
 drawPellet Small = color green (circleSolid (tileSize * 0.2))
 drawPellet Big = color red (circleSolid (tileSize * 0.5))
 
-drawGhost :: Ghost -> Picture
-drawGhost g = pictures (colorG body : [eye x | x <- [radius * 0.2, radius * 0.8]])
+drawGhost :: GameState -> Ghost -> Picture
+drawGhost state g  = pictures (colorG body : [eye x | x <- [radius * 0.2, radius * 0.8]])
   where
     radius = tileSize * 0.3
     body = pictures [
@@ -117,9 +120,15 @@ drawGhost g = pictures (colorG body : [eye x | x <- [radius * 0.2, radius * 0.8]
       South -> (0, 0, 0, -placement)
 
     placement = radius * 0.2
+    colorPicker color (x, y) status
+         |status == Return = black
+         | not (powerActive state) = color
+         | (x`mod`2 == 0 && y `mod` 2 == 0 ) || (x `mod` 2 /= 0 && y`mod`2 /= 0) = blue 
+         | otherwise = white
+
 
     colorG = case name g of
-      Blinky -> color red
-      Pinky  -> color rose
-      Inky   -> color blue
-      Clyde  -> color orange
+       Blinky -> color (colorPicker red (positionGhost g) (statusGhost g))
+       Pinky  -> color (colorPicker rose (positionGhost g)(statusGhost g))
+       Inky   -> color (colorPicker blue (positionGhost g)(statusGhost g))
+       Clyde  -> color (colorPicker orange (positionGhost g)(statusGhost g))

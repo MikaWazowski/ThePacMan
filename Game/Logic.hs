@@ -1,6 +1,7 @@
 module Game.Logic where
 
 import Game.GhostAI
+import Game.InitialState
 import Game.Types
 
 stepPosition :: Direction -> Position -> Position
@@ -26,25 +27,7 @@ fieldIsWalkable b (x, y) =
   where
     wallPlace w =
       let (wx, wy) = startPosition w
-       in y == wy && x >= wx && x < wx + Game.Types.length w
-
--- routes :: Board -> Position -> [(Position, Direction)] -> [Position] -> Direction
--- --             ^ doel         ^ wachtrij                 ^ visited
--- routes _ _ [] _ = North
--- routes bord (xTarget, yTarget) (((xBuren, yBuren), richtingBuur) : xs) bezochtlijst =  winnaar where
---      winnaar 
---       |(xTarget, yTarget) == (xBuren, yBuren)  = richtingBuur
---       |otherwise = routes bord (xTarget, yTarget) (xs ++ nieuw) (nieuweburen++ bezochtlijst)
---       where 
---       nieuweburen = (neighbours bord (xBuren, yBuren) [(0,1),(1,0),(0,-1),(-1,0)]) bezochtlijst
---       nieuw = [ (n, richtingBuur) | n <- nieuweburen ]
---     --winnaart = [((x, y), North)]
-
--- neighbours :: Board -> Position -> [Position] -> [Position] -> [Position]
--- neighbours bord positie [] bezochtlijst = []
--- neighbours bord (x, y) ((xcheck, ycheck) : xs) bezochtlijst
---   | fieldIsWalkable bord (x + xcheck, y + ycheck) && (notElem (x + xcheck, y + ycheck) bezochtlijst)= (x + xcheck, y + ycheck) : neighbours bord (x, y) xs bezochtlijst
---   | otherwise = neighbours bord (x, y) xs bezochtlijst
+       in y == wy && x >= wx && x < wx + Game.Types.lengthWall w
 
 movePacMan :: Board -> Direction -> PacMan -> PacMan
 movePacMan b dir pac =
@@ -56,9 +39,26 @@ movePacMan b dir pac =
 
 moveGhost :: GameState -> Board -> Position -> Ghost -> Ghost
 moveGhost state b posPac g
-  | fieldIsWalkable b nextPos = g {positionGhost = nextPos, directionGoingGhost = direction, stuckTimer = 0}
-  | otherwise = g {stuckTimer = stuckTimer g + 1}
+  -- Ghosts after they are eaten
+  | statusGhost g == Return && positionGhost g == home = g {statusGhost = Normal}
+  | statusGhost g == Return && fieldIsWalkable b home =
+      if fieldIsWalkable b homeNext
+        then g {positionGhost = homeNext, directionGoingGhost = homeDirection}
+        else g
+  | statusGhost g == Return = g
+  | statusGhost g == Waiting && powerActive state = g
+  
+  -- ghost who don't return
+  | fieldIsWalkable b nextPos = updatedGhost {positionGhost = nextPos, directionGoingGhost = direction}
+  | otherwise = updatedGhost
   where
+    home = ghostSpawn g
+    homeDirection = closestPoint b g home (positionGhost g) (directionGoingGhost g)
+    homeNext = stepPosition homeDirection (positionGhost g)
+    updatedGhost = g {statusGhost = newStatus}
+    newStatus
+      | powerActive state = Afraid
+      | otherwise = Normal
     pac = pacMan state
     blinkyPos = positionGhost (head (ghost state))
     dirPac = directionGoing pac
@@ -66,9 +66,12 @@ moveGhost state b posPac g
     dirGoing = directionGoingGhost g
 
     direction = case name g of
-      Blinky -> closestPoint b posPac posGhost dirGoing
-      Pinky -> logicPurple b posPac posGhost dirPac dirGoing
-      Inky -> logicInky b posPac blinkyPos posGhost dirGoing dirPac
-      Clyde -> logicClyde b posPac posGhost dirGoing
+      Blinky -> closestPoint b updatedGhost posPac posGhost dirGoing
+      Pinky -> logicPurple b updatedGhost posPac posGhost dirPac dirGoing
+      Inky -> logicInky b updatedGhost posPac blinkyPos posGhost dirGoing dirPac
+      Clyde -> logicClyde b updatedGhost posPac posGhost dirGoing
 
     nextPos = stepPosition direction posGhost
+
+powerActive :: GameState -> Bool
+powerActive state = timerOngoing state < powerUntil state

@@ -12,7 +12,7 @@ instance Eq Direction where
 
 -- The length of a wall is always from left to right
 data Wall = Wall {
-    length :: Int,
+    lengthWall :: Int,
     startPosition :: Position
 } deriving (Show)
 
@@ -29,14 +29,15 @@ data PacMan = PacMan {
 
 data GhostType = Blinky | Pinky | Inky | Clyde
     deriving (Eq)
-data GhostStatus = Afraid Float | Normal | Return | Waiting
+data GhostStatus = Afraid | Normal | Return | Waiting
+    deriving (Eq)
 
 data Ghost = Ghost {
     name :: GhostType,
     positionGhost :: Position,
     statusGhost :: GhostStatus,
     directionGoingGhost :: Direction,
-    stuckTimer :: Int
+    ghostSpawn :: Position
 }
 
 data DotType = Small | Big
@@ -48,7 +49,7 @@ data Dot = Dot {
     dotPosition :: Position
 }
 
-data GameStatus = Ongoing | Paused | NStarted | Lost | Won
+data GameStatus = Ongoing | Paused | NStarted | Lost | Won | Custom | Editing
     deriving (Eq)
 
 data GameState = GameState {
@@ -59,5 +60,6 @@ data GameState = GameState {
     score :: Int,
     lives :: Int,
     statusGame :: GameStatus,
-    timerOngoing :: Float
+    timerOngoing :: Float,
+    powerUntil :: Float
 }
