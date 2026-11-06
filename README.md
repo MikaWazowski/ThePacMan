@@ -18,8 +18,8 @@ cabal run pacman
 
 ## Files
 - `Game/Types.hs` defines all types used in the game
-- `Game/Logic.hs` handles movement
-- `Game/Controller.hs` maps input to movement
-- `Game/Render.hs` draws the board
+- `Game/Model.hs` has game state and rules (initial state, movement, scoring, and updates)
 - `Game/GhostAI.hs` contains different algorithms of the ghosts.
-- `main.hs` file that uses all other files
+- `Game/View.hs` draws the board and game screens
+- `Game/Controller.hs` handles input and custom-level file operations
+- `main.hs` connects the model, view, and controller

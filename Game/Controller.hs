@@ -1,8 +1,7 @@
 module Game.Controller where
 
-import Game.InitialState
+import Game.Model
 import Game.Types
-import Game.Update
 import Graphics.Gloss.Interface.Pure.Game
 import System.Directory
 import System.IO.Unsafe (unsafePerformIO)

@@ -1,8 +1,8 @@
-module Game.Render where
+module Game.View where
 
 import Game.Types
 import Graphics.Gloss
-import Game.Logic
+import Game.Model
 
 -- Needs to be float since the gloss functions expect float numbers, not integers
 tileSize :: Float

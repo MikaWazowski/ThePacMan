@@ -1,8 +1,7 @@
 module Main where
-import Game.Update
+import Game.Model
 import Game.Controller
-import Game.InitialState
-import Game.Render
+import Game.View
 import Game.Types
 import Graphics.Gloss
 import Graphics.Gloss.Interface.IO.Game
