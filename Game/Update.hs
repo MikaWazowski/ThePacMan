@@ -4,17 +4,21 @@ import Game.Logic
 import Game.InitialState
 import Game.Types
 
+
 step :: Float -> GameState -> GameState
 step time state
   | statusGame state /= Ongoing = state -- The game is not running so no timer has to be run
   | otherwise = (updatePacMan time state False [] []) { timerOngoing = timerOngoing state + time }
 
+--This function updates the gamestate considering new walls, moved pacman, moved Ghosts and new dots. 
 updatePacMan :: Float -> GameState -> Bool ->[Wall] -> [Dot] -> GameState
-updatePacMan time state wallChange muren dotsChange |
-  wallChange = changeMap state muren dotsChange
+updatePacMan time state wallChange muren dotsChange 
+--Check if the map needs changing I.E are there new walls/dots. 
+  | wallChange = changeMap state muren dotsChange
   | otherwise = moveTicks ticks state
   where
     oldTime = timerOngoing state
+    -- Speed of the ghosts and pacman
     movementSpeed = 5
 
 -- currently step gets called 30 times a second, but packman only moves 5 times per second
@@ -47,7 +51,7 @@ updatePacMan time state wallChange muren dotsChange |
         -- Calculates next position of pacman
         movedPac = movePacMan gameBoard direction pac
 
-        
+        --List of ghost all moved in the direction dictated by the algorithm. 
         movedGhosts = map (moveGhost currentState gameBoard (position movedPac)) (ghost currentState)
         nextState = collectDots (currentState {pacMan = movedPac, ghost = movedGhosts})
         
@@ -63,7 +67,7 @@ updatePacMan time state wallChange muren dotsChange |
           | statusGhost g /= Return && positionGhost g == position movedPac && powerActive nextState = g {statusGhost = Return}
           | otherwise = g
 
-
+--Function that counts the score of the game with eaten dots. 
 collectDots :: GameState -> GameState
 -- Disadvantage of this is that you calculate this for every dot, every tick but i don't know how to fix it otherwise
 collectDots state = state {dots = map eatDot (dots state), score = score state + sum [dotScore dot | dot <- collectedDots], powerUntil = newPowerUntil}
@@ -84,7 +88,7 @@ collectDots state = state {dots = map eatDot (dots state), score = score state +
     dotScore dot = case dotType dot of
       Small -> 10
       Big -> 50
-
+--This function changes the map with new dots and walls. 
 changeMap:: GameState -> [Wall] -> [Dot]-> GameState
 changeMap state wallsNieuw newDots = addSmallDots (state {board = nieuwboard, dots = newDots}) where
   nieuwboard = (board state) {walls = wallsNieuw}

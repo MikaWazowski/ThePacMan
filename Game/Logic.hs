@@ -4,19 +4,14 @@ import Game.GhostAI
 import Game.InitialState
 import Game.Types
 
+--This function takes a direction and a position and returns the new position I.E taking a step. 
 stepPosition :: Direction -> Position -> Position
 stepPosition North (x, y) = (x, y + 1)
 stepPosition South (x, y) = (x, y - 1)
 stepPosition East (x, y) = (x + 1, y)
 stepPosition West (x, y) = (x - 1, y)
 
-positionToDirection:: Position -> Position -> Direction
-positionToDirection (x, y) (x2, y2) 
-  |(x > x2) = West
-  |(x < x2) = East
-  |(y > y2) = South
-  |(y < y2) = North
-
+--This function checks if the field is walkable, meaning is it still within bounderies, and is there a wall in that place. 
 fieldIsWalkable :: Board -> Position -> Bool
 fieldIsWalkable b (x, y) =
   x >= 0
@@ -29,6 +24,8 @@ fieldIsWalkable b (x, y) =
       let (wx, wy) = startPosition w
        in y == wy && x >= wx && x < wx + Game.Types.lengthWall w
 
+
+--This function moves PacMan in the directon given, if possible, otherwise it does nothing. 
 movePacMan :: Board -> Direction -> PacMan -> PacMan
 movePacMan b dir pac =
   if fieldIsWalkable b next
@@ -37,6 +34,7 @@ movePacMan b dir pac =
   where
     next = stepPosition dir (position pac)
 
+--This function stears the ghosts in the direction dictated by ghostAI. 
 moveGhost :: GameState -> Board -> Position -> Ghost -> Ghost
 moveGhost state b posPac g
   -- Ghosts after they are eaten
@@ -64,7 +62,7 @@ moveGhost state b posPac g
     dirPac = directionGoing pac
     posGhost = positionGhost g
     dirGoing = directionGoingGhost g
-
+--Every ghost has a different logic, so this part accounts for that. 
     direction = case name g of
       Blinky -> closestPoint b updatedGhost posPac posGhost dirGoing
       Pinky -> logicPurple b updatedGhost posPac posGhost dirPac dirGoing
