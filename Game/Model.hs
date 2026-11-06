@@ -18,7 +18,6 @@ initialState = addSmallDots GameState
            , Dot False Big (0, 8)
            ]
   , score = 0
-  , lives = 3
   , statusGame = Ongoing
   , timerOngoing = 0
   , powerUntil = 0

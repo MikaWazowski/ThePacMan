@@ -71,7 +71,6 @@ data GameState = GameState {
     ghost :: [Ghost],
     dots :: [Dot],
     score :: Int,
-    lives :: Int,
     statusGame :: GameStatus,
     timerOngoing :: Float,
     powerUntil :: Float
