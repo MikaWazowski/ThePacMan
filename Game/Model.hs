@@ -12,10 +12,10 @@ initialState = addSmallDots GameState
             , Ghost Clyde (0, lastCell) Normal North (0, lastCell)
             , Ghost Inky (lastCell, lastCell) Normal North (lastCell, lastCell)
             ]
-  , dots = [ Dot False Big (8, 8)
-           , Dot False Big (0, 0)
-           , Dot False Big (8, 0)
-           , Dot False Big (0, 8)
+  , dots = [ Dot False Big (2, 14)
+           , Dot False Big (13, 14)
+           , Dot False Big (2, 1)
+           , Dot False Big (13, 1)
            ]
   , score = 0
   , statusGame = Ongoing
@@ -23,7 +23,20 @@ initialState = addSmallDots GameState
   , powerUntil = 0
   }
   where
-    startingBoard = Board [] 16
+    startingBoard = Board
+      [ Wall 3 (2, 13), Wall 2 (7, 13), Wall 3 (11, 13)
+      , Wall 1 (4, 12), Wall 1 (11, 12)
+      , Wall 2 (1, 11), Wall 1 (4, 11), Wall 4 (6, 11), Wall 1 (11, 11), Wall 2 (13, 11)
+      , Wall 1 (4, 10), Wall 1 (11, 10)
+      , Wall 3 (2, 9), Wall 1 (6, 9), Wall 1 (9, 9), Wall 3 (11, 9)
+      , Wall 1 (6, 8), Wall 1 (9, 8)
+      , Wall 1 (6, 7), Wall 1 (9, 7)
+      , Wall 3 (2, 6), Wall 1 (6, 6), Wall 1 (9, 6), Wall 3 (11, 6)
+      , Wall 1 (4, 5), Wall 1 (11, 5)
+      , Wall 2 (1, 4), Wall 1 (4, 4), Wall 4 (6, 4), Wall 1 (11, 4), Wall 2 (13, 4)
+      , Wall 1 (4, 3), Wall 1 (11, 3)
+      , Wall 3 (2, 2), Wall 2 (7, 2), Wall 3 (11, 2)
+      ] 16
     size = boardDimensions startingBoard
     lastCell = size - 1
     middle = (size `div` 2, size `div` 2)

@@ -6,7 +6,8 @@ Pause the game by pressing P. Resume it by pressing Space
 On game over, the best score is saved in `highscore.txt`
 
 ## Play level
-To choose a different level press 1, 2 or 3.
+To choose a different level press 1, 2 or 3. To make these levels we used our own custom level creator (therefore the names walls1.txt, walls2.txt and walls3.txt)
+For the initial level we needed a list of walls and dots. Therefore we first created a level through our own editor, but since we didn't want to type over all coordinates which belong to both the walls and the power pallets into the list of the initial state, we gave GPT-6 Sol our generates walls0.txt file and asked it to convert it into a list of coordinates.
 
 ## Create a level
 - Press C to open the custom-level menu. 
