@@ -5,9 +5,18 @@ Colliding with a ghost ends the game. Press Space to start over
 Pause the game by pressing P. Resume it by pressing Space
 On game over, the best score is saved in `highscore.txt`
 
-Press C to open the custom-level menu. Press Space to continue playing, or C again
-to create a new level. In the editor, left-click a cell to add/remove a wall and
-right-click to add/remove a power pellet. Press E to export and play the new level.
+## Play level
+To choose a different level press 1, 2 or 3.
+
+## Create a level
+- Press C to open the custom-level menu. 
+- Press Space to continue playing, or C again to create a new level. 
+- In the editor, left-click a cell to add/remove a wall
+- Right-click to add/remove a power pellet. 
+- Press E to export and play the new level.
+
+The first level you created will be saved under key 4
+The second level you created will be saved under key 5
 
 ## Run
 To start the program run:
