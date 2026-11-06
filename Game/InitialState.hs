@@ -6,10 +6,10 @@ initialState :: GameState
 initialState = GameState
   { board = startingBoard
   , pacMan = PacMan middle East East
-  , ghost = [ Ghost Blinky (0, 0) Normal East 0
-            , Ghost Pinky (lastCell, 0) Normal North 0
-            , Ghost Clyde (0, lastCell) Normal North 0
-            , Ghost Inky (lastCell, lastCell) Normal North 0
+  , ghost = [ Ghost Blinky (0, 0) Normal East (0, 0)
+            , Ghost Pinky (lastCell, 0) Normal North (lastCell, 0)
+            , Ghost Clyde (0, lastCell) Normal North (0, lastCell)
+            , Ghost Inky (lastCell, lastCell) Normal North (lastCell, lastCell)
             ]
   , dots = [ Dot False Small (2, 5)
            , Dot False Small (1, 1)
@@ -25,6 +25,7 @@ initialState = GameState
   , lives = 3
   , statusGame = Ongoing
   , timerOngoing = 0
+  , powerUntil = 0
   }
   where
     startingBoard = Board [] 16

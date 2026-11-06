@@ -31,7 +31,7 @@ handleInput (EventKey (SpecialKey KeyRight) Down _ _) state = move East state
 -- Open the custom level menu by pressing C.
 handleInput (EventKey (Char 'c') Down _ _) state
   -- If menu is already open, go to Editing
-  | statusGame state == Custom = initialState {statusGame = Editing}
+  | statusGame state == Custom = initialState {board = Board [] 16, statusGame = Editing, dots = []}
   -- Open menu
   | not (statusGame state == Custom || statusGame state == Editing ) = state {statusGame = Custom}
   | otherwise = state

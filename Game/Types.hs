@@ -37,7 +37,7 @@ data Ghost = Ghost {
     positionGhost :: Position,
     statusGhost :: GhostStatus,
     directionGoingGhost :: Direction,
-    stuckTimer :: Int
+    ghostSpawn :: Position
 }
 
 data DotType = Small | Big
@@ -60,5 +60,6 @@ data GameState = GameState {
     score :: Int,
     lives :: Int,
     statusGame :: GameStatus,
-    timerOngoing :: Float
+    timerOngoing :: Float,
+    powerUntil :: Float
 }

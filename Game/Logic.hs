@@ -56,10 +56,24 @@ movePacMan b dir pac =
 
 moveGhost :: GameState -> Board -> Position -> Ghost -> Ghost
 moveGhost state b posPac g
-  | fieldIsWalkable b nextPos && (stateChecker (dots state)) = g {positionGhost = nextPos, directionGoingGhost = direction, stuckTimer = 0, statusGhost = Afraid}
-  | fieldIsWalkable b nextPos = g {positionGhost = nextPos, directionGoingGhost = direction, stuckTimer = 0}
-  | otherwise = g {stuckTimer = stuckTimer g + 1}
+  | statusGhost g == Return && positionGhost g == home = g {statusGhost = Normal}
+  | statusGhost g == Return && fieldIsWalkable b home =
+      if fieldIsWalkable b homeNext
+        then g {positionGhost = homeNext, directionGoingGhost = homeDirection}
+        else g
+  | statusGhost g == Return = g
+  | statusGhost g == Waiting && powerActive state = g
+  
+  | fieldIsWalkable b nextPos = updatedGhost {positionGhost = nextPos, directionGoingGhost = direction}
+  | otherwise = updatedGhost
   where
+    home = ghostSpawn g
+    homeDirection = closestPoint b g home (positionGhost g) (directionGoingGhost g)
+    homeNext = stepPosition homeDirection (positionGhost g)
+    updatedGhost = g {statusGhost = newStatus}
+    newStatus
+      | powerActive state = Afraid
+      | otherwise = Normal
     pac = pacMan state
     blinkyPos = positionGhost (head (ghost state))
     dirPac = directionGoing pac
@@ -67,14 +81,12 @@ moveGhost state b posPac g
     dirGoing = directionGoingGhost g
 
     direction = case name g of
-      Blinky -> closestPoint b g posPac posGhost dirGoing
-      Pinky -> logicPurple b g posPac posGhost dirPac dirGoing
-      Inky -> logicInky b g posPac blinkyPos posGhost dirGoing dirPac
-      Clyde -> logicClyde b g posPac posGhost dirGoing
+      Blinky -> closestPoint b updatedGhost posPac posGhost dirGoing
+      Pinky -> logicPurple b updatedGhost posPac posGhost dirPac dirGoing
+      Inky -> logicInky b updatedGhost posPac blinkyPos posGhost dirGoing dirPac
+      Clyde -> logicClyde b updatedGhost posPac posGhost dirGoing
 
     nextPos = stepPosition direction posGhost
-stateChecker :: [Dot] -> Bool
-stateChecker [] = False
-stateChecker (x:xs) 
-  | eaten x == True && dotType x == Big = True
-  | otherwise = stateChecker xs
+
+powerActive :: GameState -> Bool
+powerActive state = timerOngoing state < powerUntil state
