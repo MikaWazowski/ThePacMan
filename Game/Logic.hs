@@ -1,6 +1,7 @@
 module Game.Logic where
 
 import Game.GhostAI
+import Game.InitialState
 import Game.Types
 
 stepPosition :: Direction -> Position -> Position
@@ -28,24 +29,6 @@ fieldIsWalkable b (x, y) =
       let (wx, wy) = startPosition w
        in y == wy && x >= wx && x < wx + Game.Types.lengthWall w
 
--- routes :: Board -> Position -> [(Position, Direction)] -> [Position] -> Direction
--- --             ^ doel         ^ wachtrij                 ^ visited
--- routes _ _ [] _ = North
--- routes bord (xTarget, yTarget) (((xBuren, yBuren), richtingBuur) : xs) bezochtlijst =  winnaar where
---      winnaar 
---       |(xTarget, yTarget) == (xBuren, yBuren)  = richtingBuur
---       |otherwise = routes bord (xTarget, yTarget) (xs ++ nieuw) (nieuweburen++ bezochtlijst)
---       where 
---       nieuweburen = (neighbours bord (xBuren, yBuren) [(0,1),(1,0),(0,-1),(-1,0)]) bezochtlijst
---       nieuw = [ (n, richtingBuur) | n <- nieuweburen ]
---     --winnaart = [((x, y), North)]
-
--- neighbours :: Board -> Position -> [Position] -> [Position] -> [Position]
--- neighbours bord positie [] bezochtlijst = []
--- neighbours bord (x, y) ((xcheck, ycheck) : xs) bezochtlijst
---   | fieldIsWalkable bord (x + xcheck, y + ycheck) && (notElem (x + xcheck, y + ycheck) bezochtlijst)= (x + xcheck, y + ycheck) : neighbours bord (x, y) xs bezochtlijst
---   | otherwise = neighbours bord (x, y) xs bezochtlijst
-
 movePacMan :: Board -> Direction -> PacMan -> PacMan
 movePacMan b dir pac =
   if fieldIsWalkable b next
@@ -56,6 +39,7 @@ movePacMan b dir pac =
 
 moveGhost :: GameState -> Board -> Position -> Ghost -> Ghost
 moveGhost state b posPac g
+  -- Ghosts after they are eaten
   | statusGhost g == Return && positionGhost g == home = g {statusGhost = Normal}
   | statusGhost g == Return && fieldIsWalkable b home =
       if fieldIsWalkable b homeNext
@@ -64,6 +48,7 @@ moveGhost state b posPac g
   | statusGhost g == Return = g
   | statusGhost g == Waiting && powerActive state = g
   
+  -- ghost who don't return
   | fieldIsWalkable b nextPos = updatedGhost {positionGhost = nextPos, directionGoingGhost = direction}
   | otherwise = updatedGhost
   where
