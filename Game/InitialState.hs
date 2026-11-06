@@ -6,10 +6,10 @@ initialState :: GameState
 initialState = GameState
   { board = Board [] 16 
   , pacMan = PacMan (1, 1) East East
-  , ghost = [ Ghost Blinky (5, 5) Normal East 0
-            , Ghost Pinky (2, 2) Normal North 0
-            , Ghost Clyde (8, 8) Normal North 0
-            , Ghost Inky (9, 3) Normal North 0
+  , ghost = [ Ghost Blinky (5, 5) Normal East 
+            , Ghost Pinky (2, 2) Normal North 
+            , Ghost Clyde (8, 8) Normal North 
+            , Ghost Inky (9, 3) Normal North 
             ]
   , dots = [ Dot False Small (2, 5)
            , Dot False Small (1, 1)
