@@ -112,14 +112,15 @@ drawGhost state g  = pictures (colorG body : [eye x | x <- [radius * 0.2, radius
       South -> (0, 0, 0, -placement)
 
     placement = radius * 0.2
-    colorPicker dots color (x, y) 
+    colorPicker dots color (x, y) status
+         |status == Return = black
          | not (stateChecker dots) = color 
          | (x`mod`2 == 0 && y `mod` 2 == 0 ) || (x `mod` 2 /= 0 && y`mod`2 /= 0) = blue 
          | otherwise = white
 
 
     colorG = case name g of
-      Blinky -> color (colorPicker (dots state) red (positionGhost g)  )
-      Pinky  -> color (colorPicker (dots state) rose (positionGhost g))
-      Inky   -> color (colorPicker (dots state) blue (positionGhost g))
-      Clyde  -> color (colorPicker (dots state) orange (positionGhost g)) where
+      Blinky -> color (colorPicker (dots state) red (positionGhost g) (statusGhost g)  )
+      Pinky  -> color (colorPicker (dots state) rose (positionGhost g)(statusGhost g))
+      Inky   -> color (colorPicker (dots state) blue (positionGhost g)(statusGhost g))
+      Clyde  -> color (colorPicker (dots state) orange (positionGhost g)(statusGhost g)) where

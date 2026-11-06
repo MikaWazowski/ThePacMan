@@ -9,21 +9,22 @@ step time state
   | otherwise = (updatePacMan time state False [] []) { timerOngoing = timerOngoing state + time }
 
 updatePacMan :: Float -> GameState -> Bool ->[Wall] -> [Dot] -> GameState
-updatePacMan time state wallChange muren dots |
-  wallChange = changeMap state muren dots
+updatePacMan time state wallChange muren dotsChange |
+  wallChange = changeMap state muren dotsChange
   | otherwise = moveTicks ticks state
   where
     oldTime = timerOngoing state
     movementSpeed = 3
-
+    ghostAfraid = stateChecker (dots state)
     -- currently step gets called 30 times a second, but packman only moves 5 times per second
     ticks = floor ((oldTime + time) * movementSpeed) - floor (oldTime * movementSpeed)
-
+    
     moveTicks n currentState
       | n <= 0 || statusGame currentState /= Ongoing = currentState
       | otherwise = moveTicks (n - 1) (moveOne currentState)
 
     moveOne currentState
+      | collided && ghostAfraid = currentState { pacMan = movedPac, ghost = ghostCollided (position movedPac) movedGhosts, score = oldscore + 100 }
       | collided = currentState { pacMan = movedPac, ghost = movedGhosts, statusGame = Lost }
       | otherwise = collectDots (currentState { pacMan = movedPac, ghost = movedGhosts })
       where
@@ -31,7 +32,7 @@ updatePacMan time state wallChange muren dots |
         gameBoard = board currentState
         pac = pacMan currentState
         wantedDirection = directionWant pac
-
+        oldscore = score currentState
         -- See if there is no wall that makes it so that pacman cannot move into its wanted direction
         moveWantedDir = fieldIsWalkable gameBoard (stepPosition wantedDirection (position pac))
 
@@ -47,6 +48,14 @@ updatePacMan time state wallChange muren dots |
         movedGhosts = map (moveGhost currentState gameBoard (position movedPac)) (ghost currentState)
 
         collided = any (\x -> positionGhost x == position movedPac) movedGhosts
+
+ghostCollided :: (Position) -> [Ghost] ->  [Ghost]
+
+ghostCollided positie [] = []
+ghostCollided positie (x:xs) 
+  | positie == (positionGhost x) = x {statusGhost = Return} : ghostCollided positie xs
+  | otherwise = x : ghostCollided positie xs
+
 
 collectDots :: GameState -> GameState
 -- Disadvantage of this is that you calculate this for every dot, every tick but i don't know how to fix it otherwise

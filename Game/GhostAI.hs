@@ -61,7 +61,7 @@ closestPoint :: Board -> Ghost -> Position -> Position -> Direction -> Direction
 closestPoint bord g doel spook huidig
   | doel == spook  = huidig
   | null start    = huidig
-  | status == Afraid     =  (snd (start !! unsafePerformIO (randomRIO (0, length start - 1))))
+  | status == Afraid     =  (unsafePerformIO (randomDirIO huidig))
   | otherwise     = routes bord doel start (spook : map fst start)
   where
     start = [ (n, positionToDirection2 spook n)
@@ -69,15 +69,17 @@ closestPoint bord g doel spook huidig
     status = statusGhost g
 
 
+tegenovergesteld :: Direction -> Direction 
+tegenovergesteld North = South
+tegenovergesteld South = North
+tegenovergesteld West = East
+tegenovergesteld East = West
 
-toDirection :: Int -> Direction
-toDirection 0 = North
-toDirection 1 = East
-toDirection 2 = South
-toDirection _ = West
-
-randomDirIO :: IO Direction
-randomDirIO = toDirection <$> randomRIO (0, 3)
+randomDirIO :: Direction -> IO Direction
+randomDirIO dir = do
+  let options = filter (/= tegenovergesteld dir) [North, East, South, West]
+  i <- randomRIO (0, length options - 1)
+  return (options !! i)
 
 toWalkable :: Board -> Position -> Direction -> Position
 toWalkable b (x, y) richting 
