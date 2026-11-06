@@ -2,7 +2,7 @@ module Game.Render where
 
 import Game.Types
 import Graphics.Gloss
-import Game.Logic (stateChecker)
+import Game.Logic
 
 -- Needs to be float since the gloss functions expect float numbers, not integers
 tileSize :: Float
@@ -20,7 +20,9 @@ render state = pictures (grid ++ wallPictures ++ pelletPicture ++ ghostPictures 
 
     statusPicture = case statusGame state of
       Lost   -> drawStatusOverlay boardWidth "GAME OVER" "Press SPACE to restart" 0.3
+      Won    -> drawStatusOverlay boardWidth "YOU WIN" "Press SPACE to restart" 0.2
       Paused -> drawStatusOverlay boardWidth "PAUSED" "Press SPACE to resume" 0.2
+      Custom -> drawStatusOverlay boardWidth "CUSTOM LEVEL" "SPACE: continue - C: new level" 0.3
       _      -> blank
 
     -- We use a 0 based grid since that is easier for future calculations.
@@ -32,7 +34,13 @@ render state = pictures (grid ++ wallPictures ++ pelletPicture ++ ghostPictures 
       where
         radius = tileSize * 0.36
         body = color yellow (circleSolid radius)
-        mouth = color black (polygon [(0, 0), (radius, radius / 2), (radius, -radius / 2)])
+        -- Each mouth stage lasts about ten updates at 30 FPS.        
+        mouthFrame = floor (timerOngoing state * 3) `mod` 2
+        mouthHeight 
+          | mouthFrame == 0 = radius / 2
+          | otherwise = radius / 5
+
+        mouth = color black (polygon [(0, 0), (radius, mouthHeight), (radius, -mouthHeight)])
         eye = translate (-radius * 0.15) eyeY (color black (circleSolid (radius * 0.2)))
 
         eyeY = case directionGoing (pacMan state) of
@@ -47,7 +55,7 @@ render state = pictures (grid ++ wallPictures ++ pelletPicture ++ ghostPictures 
     -- Draw a dot for every dot that is not eaten yet.
     pelletPicture = [drawTile size (dotPosition dot) (drawPellet (dotType dot)) | dot <- dots state, not (eaten dot)]
 
-    ghostPictures = [drawTile size (positionGhost g) (drawGhost state g) | g <- ghost state]
+    ghostPictures = [drawTile size (positionGhost g) (drawGhost state g) | g <- ghost state, statusGhost g /= Return]
 
 drawStatusOverlay :: Float -> String -> String -> Float -> Picture
 drawStatusOverlay boardWidth title message middleTitle = pictures
@@ -112,15 +120,15 @@ drawGhost state g  = pictures (colorG body : [eye x | x <- [radius * 0.2, radius
       South -> (0, 0, 0, -placement)
 
     placement = radius * 0.2
-    colorPicker dots color (x, y) status
+    colorPicker color (x, y) status
          |status == Return = black
-         | not (stateChecker dots) = color 
+         | not (powerActive state) = color
          | (x`mod`2 == 0 && y `mod` 2 == 0 ) || (x `mod` 2 /= 0 && y`mod`2 /= 0) = blue 
          | otherwise = white
 
 
     colorG = case name g of
-      Blinky -> color (colorPicker (dots state) red (positionGhost g) (statusGhost g)  )
-      Pinky  -> color (colorPicker (dots state) rose (positionGhost g)(statusGhost g))
-      Inky   -> color (colorPicker (dots state) blue (positionGhost g)(statusGhost g))
-      Clyde  -> color (colorPicker (dots state) orange (positionGhost g)(statusGhost g)) where
+       Blinky -> color (colorPicker red (positionGhost g) (statusGhost g))
+       Pinky  -> color (colorPicker rose (positionGhost g)(statusGhost g))
+       Inky   -> color (colorPicker blue (positionGhost g)(statusGhost g))
+       Clyde  -> color (colorPicker orange (positionGhost g)(statusGhost g))

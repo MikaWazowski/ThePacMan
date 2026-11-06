@@ -1,6 +1,7 @@
 module Game.Logic where
 
 import Game.GhostAI
+import Game.InitialState
 import Game.Types
 
 --This function takes a direction and a position and returns the new position I.E taking a step. 
@@ -36,10 +37,26 @@ movePacMan b dir pac =
 --This function stears the ghosts in the direction dictated by ghostAI. 
 moveGhost :: GameState -> Board -> Position -> Ghost -> Ghost
 moveGhost state b posPac g
-  | fieldIsWalkable b nextPos && (stateChecker (dots state)) = g {positionGhost = nextPos, directionGoingGhost = direction, statusGhost = Afraid}
-  | fieldIsWalkable b nextPos = g {positionGhost = nextPos, directionGoingGhost = direction}
-  | otherwise = g 
+  -- Ghosts after they are eaten
+  | statusGhost g == Return && positionGhost g == home = g {statusGhost = Normal}
+  | statusGhost g == Return && fieldIsWalkable b home =
+      if fieldIsWalkable b homeNext
+        then g {positionGhost = homeNext, directionGoingGhost = homeDirection}
+        else g
+  | statusGhost g == Return = g
+  | statusGhost g == Waiting && powerActive state = g
+  
+  -- ghost who don't return
+  | fieldIsWalkable b nextPos = updatedGhost {positionGhost = nextPos, directionGoingGhost = direction}
+  | otherwise = updatedGhost
   where
+    home = ghostSpawn g
+    homeDirection = closestPoint b g home (positionGhost g) (directionGoingGhost g)
+    homeNext = stepPosition homeDirection (positionGhost g)
+    updatedGhost = g {statusGhost = newStatus}
+    newStatus
+      | powerActive state = Afraid
+      | otherwise = Normal
     pac = pacMan state
     blinkyPos = positionGhost (head (ghost state))
     dirPac = directionGoing pac
@@ -47,15 +64,12 @@ moveGhost state b posPac g
     dirGoing = directionGoingGhost g
 --Every ghost has a different logic, so this part accounts for that. 
     direction = case name g of
-      Blinky -> closestPoint b g posPac posGhost dirGoing
-      Pinky -> logicPurple b g posPac posGhost dirPac dirGoing
-      Inky -> logicInky b g posPac blinkyPos posGhost dirGoing dirPac
-      Clyde -> logicClyde b g posPac posGhost dirGoing
+      Blinky -> closestPoint b updatedGhost posPac posGhost dirGoing
+      Pinky -> logicPurple b updatedGhost posPac posGhost dirPac dirGoing
+      Inky -> logicInky b updatedGhost posPac blinkyPos posGhost dirGoing dirPac
+      Clyde -> logicClyde b updatedGhost posPac posGhost dirGoing
 
     nextPos = stepPosition direction posGhost
---This function checks the state of ghosts, by checking if a big dot has been eaten. 
-stateChecker :: [Dot] -> Bool
-stateChecker [] = False
-stateChecker (x:xs) 
-  | eaten x == True && dotType x == Big = True
-  | otherwise = stateChecker xs
+
+powerActive :: GameState -> Bool
+powerActive state = timerOngoing state < powerUntil state

@@ -45,7 +45,8 @@ data Ghost = Ghost {
     name :: GhostType,
     positionGhost :: Position,
     statusGhost :: GhostStatus,
-    directionGoingGhost :: Direction
+    directionGoingGhost :: Direction,
+    ghostSpawn :: Position
 }
 
 --The data type for the dots PacMan eats, they can either be big or small. 
@@ -59,9 +60,8 @@ data Dot = Dot {
     dotPosition :: Position
 }
 
-
 --The status of the game, it can either be ongoing, paused, Nstarded, lost, won and there is the option for the home and custom screen. 
-data GameStatus = Ongoing | Paused | NStarted | Lost | Won | Home |Custom
+data GameStatus = Ongoing | Paused | NStarted | Lost | Won | Custom | Editing
     deriving (Eq)
 
 --The datatype for the gamestate, containing everything needed to create the game. 
@@ -73,5 +73,6 @@ data GameState = GameState {
     score :: Int,
     lives :: Int,
     statusGame :: GameStatus,
-    timerOngoing :: Float
+    timerOngoing :: Float,
+    powerUntil :: Float
 }
