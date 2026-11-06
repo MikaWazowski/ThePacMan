@@ -16,7 +16,8 @@ updatePacMan time state wallChange muren dotsChange |
   where
     oldTime = timerOngoing state
     movementSpeed = 5
-    -- currently step gets called 30 times a second, but packman only moves 5 times per second
+
+-- currently step gets called 30 times a second, but packman only moves 5 times per second
     ticks = floor ((oldTime + time) * movementSpeed) - floor (oldTime * movementSpeed)
     firstTick = floor (oldTime * movementSpeed) + 1
     

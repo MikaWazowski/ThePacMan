@@ -34,7 +34,13 @@ render state = pictures (grid ++ wallPictures ++ pelletPicture ++ ghostPictures 
       where
         radius = tileSize * 0.36
         body = color yellow (circleSolid radius)
-        mouth = color black (polygon [(0, 0), (radius, radius / 2), (radius, -radius / 2)])
+        -- Each mouth stage lasts about ten updates at 30 FPS.        
+        mouthFrame = floor (timerOngoing state * 3) `mod` 2
+        mouthHeight 
+          | mouthFrame == 0 = radius / 2
+          | otherwise = radius / 5
+
+        mouth = color black (polygon [(0, 0), (radius, mouthHeight), (radius, -mouthHeight)])
         eye = translate (-radius * 0.15) eyeY (color black (circleSolid (radius * 0.2)))
 
         eyeY = case directionGoing (pacMan state) of
