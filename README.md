@@ -11,7 +11,7 @@ To choose a different level press 1, 2 or 3.
 ## Create a level
 - Press C to open the custom-level menu. 
 - Press Space to continue playing, or C again to create a new level. 
-- In the editor, left-click a cell to add/remove a wall
+- In the editor, left-click a cell to add a wall, double click to remove a wall
 - Right-click to add/remove a power pellet. 
 - Press E to export and play the new level.
 
