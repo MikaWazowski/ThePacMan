@@ -6,11 +6,11 @@ import Game.Types
 step :: Float -> GameState -> GameState
 step time state
   | statusGame state /= Ongoing = state -- The game is not running so no timer has to be run
-  | otherwise = (updatePacMan time state False []) { timerOngoing = timerOngoing state + time }
+  | otherwise = (updatePacMan time state False [] []) { timerOngoing = timerOngoing state + time }
 
-updatePacMan :: Float -> GameState -> Bool ->[Wall] -> GameState
-updatePacMan time state wallChange muren |
-  wallChange = chanageWall state muren
+updatePacMan :: Float -> GameState -> Bool ->[Wall] -> [Dot] -> GameState
+updatePacMan time state wallChange muren dots |
+  wallChange = changeMap state muren dots
   | otherwise = moveTicks ticks state
   where
     oldTime = timerOngoing state
@@ -63,6 +63,6 @@ collectDots state = state {dots = map eatDot (dots state), score = score state +
       Small -> 10
       Big -> 50
 
-chanageWall:: GameState -> [Wall] -> GameState
-chanageWall state wallsNieuw = state {board = nieuwboard} where
+changeMap:: GameState -> [Wall] -> [Dot]-> GameState
+changeMap state wallsNieuw newDots = state {board = nieuwboard, dots = newDots} where
   nieuwboard = (board state) {walls = wallsNieuw}
