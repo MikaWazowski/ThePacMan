@@ -49,7 +49,7 @@ data Dot = Dot {
     dotPosition :: Position
 }
 
-data GameStatus = Ongoing | Paused | NStarted | Lost | Won | Home |Custom
+data GameStatus = Ongoing | Paused | NStarted | Lost | Won | Home |Custom| Editing
     deriving (Eq)
 
 data GameState = GameState {

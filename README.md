@@ -4,6 +4,10 @@ You can move PacMan by either using WASD or the arrows on your keyboard. The goa
 Colliding with a ghost ends the game. Press Space to start over
 Pause the game by pressing P. Resume it by pressing Space
 
+Press C to open the custom-level menu. Press Space to continue playing, or C again
+to create a new level. In the editor, left-click a cell to add/remove a wall and
+right-click to add/remove a power pellet. Press E to export and play the new level.
+
 ## Run
 To start the program run:
 

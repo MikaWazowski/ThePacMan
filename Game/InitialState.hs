@@ -4,12 +4,12 @@ import Game.Types
 
 initialState :: GameState
 initialState = GameState
-  { board = Board [] 16 
-  , pacMan = PacMan (1, 1) East East
-  , ghost = [ Ghost Blinky (5, 5) Normal East 0
-            , Ghost Pinky (2, 2) Normal North 0
-            , Ghost Clyde (8, 8) Normal North 0
-            , Ghost Inky (9, 3) Normal North 0
+  { board = startingBoard
+  , pacMan = PacMan middle East East
+  , ghost = [ Ghost Blinky (0, 0) Normal East 0
+            , Ghost Pinky (lastCell, 0) Normal North 0
+            , Ghost Clyde (0, lastCell) Normal North 0
+            , Ghost Inky (lastCell, lastCell) Normal North 0
             ]
   , dots = [ Dot False Small (2, 5)
            , Dot False Small (1, 1)
@@ -26,3 +26,8 @@ initialState = GameState
   , statusGame = Ongoing
   , timerOngoing = 0
   }
+  where
+    startingBoard = Board [] 16
+    size = boardDimensions startingBoard
+    lastCell = size - 1
+    middle = (size `div` 2, size `div` 2)
