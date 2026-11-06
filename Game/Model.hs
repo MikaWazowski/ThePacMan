@@ -56,20 +56,6 @@ stepPosition South (x, y) = (x, y - 1)
 stepPosition East (x, y) = (x + 1, y)
 stepPosition West (x, y) = (x - 1, y)
 
---This function checks if the field is walkable, meaning is it still within bounderies, and is there a wall in that place. 
-fieldIsWalkable :: Board -> Position -> Bool
-fieldIsWalkable b (x, y) =
-  x >= 0
-    && y >= 0
-    && x < boardDimensions b
-    && y < boardDimensions b
-    && not (any wallPlace (walls b))
-  where
-    wallPlace w =
-      let (wx, wy) = startPosition w
-       in y == wy && x >= wx && x < wx + Game.Types.lengthWall w
-
-
 --This function moves PacMan in the directon given, if possible, otherwise it does nothing. 
 movePacMan :: Board -> Direction -> PacMan -> PacMan
 movePacMan b dir pac =
@@ -110,7 +96,7 @@ moveGhost state b posPac g
 --Every ghost has a different logic, so this part accounts for that. 
     direction = case name g of
       Blinky -> closestPoint b updatedGhost posPac posGhost dirGoing
-      Pinky -> logicPurple b updatedGhost posPac posGhost dirPac dirGoing
+      Pinky -> logicSpeedy b updatedGhost posPac posGhost dirPac dirGoing
       Inky -> logicInky b updatedGhost posPac blinkyPos posGhost dirGoing dirPac
       Clyde -> logicClyde b updatedGhost posPac posGhost dirGoing
 
