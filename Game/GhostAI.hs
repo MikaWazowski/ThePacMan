@@ -102,28 +102,27 @@ logicPurple b g (pacX, pacY) (purX, purY) dirPac dirPur
     
 
 logicInky :: Board -> Ghost->  Position -> Position -> Position -> Direction -> Direction -> Direction
-logicInky b g(pacX, pacY) (bliX, bliY) inkPos dirInk dirPac =
-  let afstand =
-        case dirPac of
-          North -> (pacX + (pacX - bliX) * 2, pacY + 2 + (pacY - bliY) * 2)
-          South -> (pacX + (pacX - bliX) * 2, pacY - 2 + (pacY - bliY) * 2)
-          West -> (pacX - 2 + (pacX - bliX) * 2, pacY + (pacY - bliY) * 2)
-          East -> (pacX + 2 + (pacX - bliX) * 2, pacY + (pacY - bliY) * 2)
-   in closestPoint b g(pacX, pacY) inkPos dirInk
+logicInky b g (pacX, pacY) (bliX, bliY) inkPos dirInk dirPac =
+  closestPoint b g (keepInBoard b target) inkPos dirInk
+  where
+    (dx, dy) = case dirPac of
+      North -> (0, 2)
+      South -> (0, -2)
+      East  -> (2, 0)
+      West  -> (-2, 0)
+    -- Double the vector from Blinky to the tile two steps ahead of Pac-Man.
+    target = (2 * (pacX + dx) - bliX, 2 * (pacY + dy) - bliY)
+
+-- Make sure the target position stays in board
+keepInBoard :: Board -> Position -> Position
+keepInBoard b (x, y) = (clamp x, clamp y)
+  where
+    clamp coordinate = max 0 (min (boardDimensions b - 1) coordinate)
+
+distanceSquared :: Position -> Position -> Int
+distanceSquared (x1, y1) (x2, y2) = (x1 - x2) ^ 2 + (y1 - y2) ^ 2
 
 logicClyde :: Board -> Ghost-> Position  -> Position -> Direction -> Direction
-logicClyde b g (xPac, ypac) (clyX, clyY) dirBlin 
-  | (afstand (xPac, ypac) (clyX, clyY) 32) = closestPoint  b g (xPac, ypac) (clyX, clyY) dirBlin  
-  -- (0,0) moet linker corner zijn
-  | otherwise = closestPoint b  g (0, 0) (clyX, clyY) dirBlin
-
-afstand :: Position -> Position -> Int -> Bool
-afstand (pacX, pacY) (clyX, clyY) tileSize 
---de 1 moet eigenlijk een grid van 8 zijn, maar onze grid is te klein, dus die moeten we later groter gaan maken. 
- |abs (pacX - clyX) > 1 = True
- |otherwise =  False
-
--- fullTime :: Board ->  Position -> Position -> Direction -> Direction
--- fullTime posPac posGhost dirGhost = closestPoint posPac posGhost dirGhost
-
--- if stuck implementeren
+logicClyde b g pacPos clydePos dirClyde
+  | distanceSquared pacPos clydePos >= 64 = closestPoint  b g pacPos clydePos dirClyde
+  | otherwise = closestPoint b  g (0, 0) clydePos dirClyde
