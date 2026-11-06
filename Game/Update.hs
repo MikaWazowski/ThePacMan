@@ -1,6 +1,7 @@
 module Game.Update where
 
 import Game.Logic
+import Game.InitialState
 import Game.Types
 
 step :: Float -> GameState -> GameState
@@ -27,7 +28,8 @@ updatePacMan time state wallChange muren dotsChange |
 
     moveOne currentState
       | any activeGhost collidingGhosts = nextState {statusGame = Lost}
-      | otherwise = nextState {ghost = map eatCollidingGhost movedGhosts, score = score nextState + ghostScore}
+      | all eaten (dots nextState) = scoredState {statusGame = Won}
+      | otherwise = scoredState
       where
         -- Setting local "variables" from the current state of the game
         gameBoard = board currentState
@@ -55,6 +57,7 @@ updatePacMan time state wallChange muren dotsChange |
 
         -- Get 100 points for each ghost you eat
         ghostScore = 100 * length edibleGhosts
+        scoredState = nextState {ghost = map eatCollidingGhost movedGhosts, score = score nextState + ghostScore}
         eatCollidingGhost g
           | statusGhost g /= Return && positionGhost g == position movedPac && powerActive nextState = g {statusGhost = Return}
           | otherwise = g
@@ -82,5 +85,5 @@ collectDots state = state {dots = map eatDot (dots state), score = score state +
       Big -> 50
 
 changeMap:: GameState -> [Wall] -> [Dot]-> GameState
-changeMap state wallsNieuw newDots = state {board = nieuwboard, dots = newDots} where
+changeMap state wallsNieuw newDots = addSmallDots (state {board = nieuwboard, dots = newDots}) where
   nieuwboard = (board state) {walls = wallsNieuw}

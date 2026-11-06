@@ -20,6 +20,7 @@ render state = pictures (grid ++ wallPictures ++ pelletPicture ++ ghostPictures 
 
     statusPicture = case statusGame state of
       Lost   -> drawStatusOverlay boardWidth "GAME OVER" "Press SPACE to restart" 0.3
+      Won    -> drawStatusOverlay boardWidth "YOU WIN" "Press SPACE to restart" 0.2
       Paused -> drawStatusOverlay boardWidth "PAUSED" "Press SPACE to resume" 0.2
       Custom -> drawStatusOverlay boardWidth "CUSTOM LEVEL" "SPACE: continue - C: new level" 0.3
       _      -> blank

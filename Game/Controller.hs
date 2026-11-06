@@ -12,12 +12,12 @@ handleInput :: Event -> GameState -> GameState
 
 -- You can either move pacman with WASD or with the arrow buttons
 handleInput (EventKey (SpecialKey KeySpace) Down _ _) state
-  | statusGame state == Lost = initialState {board = board state}
+  -- Filter at the end used to get all powerpellets back on the board.s
+  | statusGame state == Lost || statusGame state == Won = addSmallDots (initialState {board = board state, dots = map (\dot -> dot {eaten = False}) (filter ((== Big) . dotType) (dots state))})
   | statusGame state == Paused = state {statusGame = Ongoing}
   | statusGame state == Custom = state {statusGame = Ongoing}
 
 handleInput (EventKey (Char 'p') Down _ _) state = state {statusGame = Paused}
-handleInput (EventKey (Char 'h') Down _ _) state = state {statusGame = Home}
 handleInput (EventKey (Char 'w') Down _ _) state = move North state
 handleInput (EventKey (Char 's') Down _ _) state = move South state
 handleInput (EventKey (Char 'a') Down _ _) state = move West state
@@ -31,7 +31,7 @@ handleInput (EventKey (SpecialKey KeyRight) Down _ _) state = move East state
 -- Open the custom level menu by pressing C.
 handleInput (EventKey (Char 'c') Down _ _) state
   -- If menu is already open, go to Editing
-  | statusGame state == Custom = initialState {board = Board [] 16, statusGame = Editing, dots = []}
+  | statusGame state == Custom = addSmallDots (initialState {board = Board [] 16, statusGame = Editing, dots = []})
   -- Open menu
   | not (statusGame state == Custom || statusGame state == Editing ) = state {statusGame = Custom}
   | otherwise = state
@@ -130,7 +130,7 @@ openGame state path count = do
       else return []
   --Defining the new board and state. 
   let newBoard = (board state) {walls = createWallList state wallLines}
-  let newState = initialState {board = newBoard, dots = createDotList state wallLines}
+  let newState = addSmallDots (initialState {board = newBoard, dots = createDotList state wallLines})
   return newState
 
 --Creating a list of walls based on a list of strings. 
@@ -186,6 +186,8 @@ wallmaker :: GameState -> Position -> [Wall]
 wallmaker state cell
   -- Remove the wall if it is already exists
   | any ((== cell) . startPosition) oldWalls = filter ((/= cell) . startPosition) oldWalls
+  -- Don't add a wall over pacamn or one of the ghosts
+  | cell == position (pacMan state) || any ((== cell) . ghostSpawn) (ghost state) = oldWalls
   | otherwise = Wall 1 cell : oldWalls
   where
     oldWalls = walls (board state)
