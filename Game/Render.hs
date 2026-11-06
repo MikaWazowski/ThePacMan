@@ -2,10 +2,11 @@ module Game.Render where
 
 import Game.Types
 import Graphics.Gloss
+import Game.Logic (stateChecker)
 
 -- Needs to be float since the gloss functions expect float numbers, not integers
 tileSize :: Float
-tileSize = 48
+tileSize = 32
 
 render :: GameState -> Picture
 render state = pictures (grid ++ wallPictures ++ pelletPicture ++ ghostPictures ++ [pacPicture, scorePicture, statusPicture])
@@ -46,7 +47,7 @@ render state = pictures (grid ++ wallPictures ++ pelletPicture ++ ghostPictures 
     -- Draw a dot for every dot that is not eaten yet.
     pelletPicture = [drawTile size (dotPosition dot) (drawPellet (dotType dot)) | dot <- dots state, not (eaten dot)]
 
-    ghostPictures = [drawTile size (positionGhost g) (drawGhost g) | g <- ghost state]
+    ghostPictures = [drawTile size (positionGhost g) (drawGhost state g) | g <- ghost state]
 
 drawStatusOverlay :: Float -> String -> String -> Float -> Picture
 drawStatusOverlay boardWidth title message middleTitle = pictures
@@ -64,7 +65,7 @@ drawWall size wall =
   [drawTile size (x, wallY) (color blue (rectangleSolid tileSize tileSize)) | x <- [wallStartX .. wallEndX]]
   where
     (wallStartX, wallY) = startPosition wall
-    wallEndX = wallStartX + Game.Types.length wall - 1
+    wallEndX = wallStartX + Game.Types.lengthWall wall - 1
 
 drawTile :: Int -> Position -> Picture -> Picture
 drawTile size (x, y) picture = translate screenX screenY picture
@@ -83,8 +84,8 @@ drawPellet :: DotType -> Picture
 drawPellet Small = color green (circleSolid (tileSize * 0.2))
 drawPellet Big = color red (circleSolid (tileSize * 0.5))
 
-drawGhost :: Ghost -> Picture
-drawGhost g = pictures (colorG body : [eye x | x <- [radius * 0.2, radius * 0.8]])
+drawGhost :: GameState -> Ghost -> Picture
+drawGhost state g  = pictures (colorG body : [eye x | x <- [radius * 0.2, radius * 0.8]])
   where
     radius = tileSize * 0.3
     body = pictures [
@@ -111,9 +112,14 @@ drawGhost g = pictures (colorG body : [eye x | x <- [radius * 0.2, radius * 0.8]
       South -> (0, 0, 0, -placement)
 
     placement = radius * 0.2
+    colorPicker dots color (x, y) 
+         | not (stateChecker dots) = color 
+         | (x`mod`2 == 0 && y `mod` 2 == 0 ) || (x `mod` 2 /= 0 && y`mod`2 /= 0) = blue 
+         | otherwise = white
+
 
     colorG = case name g of
-      Blinky -> color red
-      Pinky  -> color rose
-      Inky   -> color blue
-      Clyde  -> color orange
+      Blinky -> color (colorPicker (dots state) red (positionGhost g)  )
+      Pinky  -> color (colorPicker (dots state) rose (positionGhost g))
+      Inky   -> color (colorPicker (dots state) blue (positionGhost g))
+      Clyde  -> color (colorPicker (dots state) orange (positionGhost g)) where

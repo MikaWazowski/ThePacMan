@@ -6,13 +6,15 @@ import Game.Types
 step :: Float -> GameState -> GameState
 step time state
   | statusGame state /= Ongoing = state -- The game is not running so no timer has to be run
-  | otherwise = (updatePacMan time state) { timerOngoing = timerOngoing state + time }
+  | otherwise = (updatePacMan time state False []) { timerOngoing = timerOngoing state + time }
 
-updatePacMan :: Float -> GameState -> GameState
-updatePacMan time state = moveTicks ticks state
+updatePacMan :: Float -> GameState -> Bool ->[Wall] -> GameState
+updatePacMan time state wallChange muren |
+  wallChange = chanageWall state muren
+  | otherwise = moveTicks ticks state
   where
     oldTime = timerOngoing state
-    movementSpeed = 1
+    movementSpeed = 3
 
     -- currently step gets called 30 times a second, but packman only moves 5 times per second
     ticks = floor ((oldTime + time) * movementSpeed) - floor (oldTime * movementSpeed)
@@ -60,3 +62,7 @@ collectDots state = state {dots = map eatDot (dots state), score = score state +
     dotScore dot = case dotType dot of
       Small -> 10
       Big -> 50
+
+chanageWall:: GameState -> [Wall] -> GameState
+chanageWall state wallsNieuw = state {board = nieuwboard} where
+  nieuwboard = (board state) {walls = wallsNieuw}

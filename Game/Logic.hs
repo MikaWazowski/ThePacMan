@@ -26,7 +26,7 @@ fieldIsWalkable b (x, y) =
   where
     wallPlace w =
       let (wx, wy) = startPosition w
-       in y == wy && x >= wx && x < wx + Game.Types.length w
+       in y == wy && x >= wx && x < wx + Game.Types.lengthWall w
 
 -- routes :: Board -> Position -> [(Position, Direction)] -> [Position] -> Direction
 -- --             ^ doel         ^ wachtrij                 ^ visited
@@ -56,6 +56,7 @@ movePacMan b dir pac =
 
 moveGhost :: GameState -> Board -> Position -> Ghost -> Ghost
 moveGhost state b posPac g
+  | fieldIsWalkable b nextPos && (stateChecker (dots state)) = g {positionGhost = nextPos, directionGoingGhost = direction, stuckTimer = 0, statusGhost = Afraid}
   | fieldIsWalkable b nextPos = g {positionGhost = nextPos, directionGoingGhost = direction, stuckTimer = 0}
   | otherwise = g {stuckTimer = stuckTimer g + 1}
   where
@@ -66,9 +67,14 @@ moveGhost state b posPac g
     dirGoing = directionGoingGhost g
 
     direction = case name g of
-      Blinky -> closestPoint b posPac posGhost dirGoing
-      Pinky -> logicPurple b posPac posGhost dirPac dirGoing
-      Inky -> logicInky b posPac blinkyPos posGhost dirGoing dirPac
-      Clyde -> logicClyde b posPac posGhost dirGoing
+      Blinky -> closestPoint b g posPac posGhost dirGoing
+      Pinky -> logicPurple b g posPac posGhost dirPac dirGoing
+      Inky -> logicInky b g posPac blinkyPos posGhost dirGoing dirPac
+      Clyde -> logicClyde b g posPac posGhost dirGoing
 
     nextPos = stepPosition direction posGhost
+stateChecker :: [Dot] -> Bool
+stateChecker [] = False
+stateChecker (x:xs) 
+  | eaten x == True && dotType x == Big = True
+  | otherwise = stateChecker xs

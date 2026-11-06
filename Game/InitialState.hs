@@ -4,7 +4,7 @@ import Game.Types
 
 initialState :: GameState
 initialState = GameState
-  { board = Board [Wall 4 (3, 3), Wall 3 (2, 7)] 10
+  { board = Board [] 16 
   , pacMan = PacMan (1, 1) East East
   , ghost = [ Ghost Blinky (5, 5) Normal East 0
             , Ghost Pinky (2, 2) Normal North 0
